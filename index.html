@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expert - Home</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px; /* Space for bottom nav */
+        }
+
+        /* Header */
+        .header {
+            background-color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Search Bar */
+        .search-container {
+            position: relative;
+            margin: 0.5rem 0;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 3rem;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            background-color: #f5f5f5;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        /* Categories Grid */
+        .categories {
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .category-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .category-img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .category-title {
+            padding: 0.8rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .nav-item.active {
+            color: #4285f4;
+        }
+
+        .material-icons {
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="search-container">
+            <span class="material-icons search-icon">search</span>
+            <input type="text" class="search-bar" placeholder="Search services...">
+        </div>
+    </div>
+
+    <div class="categories">
+        <div class="category-card">
+            <img src="https://source.unsplash.com/300x200/?cleaning" alt="Cleaning" class="category-img">
+            <div class="category-title">Home Cleaning</div>
+        </div>
+        <div class="category-card">
+            <img src="https://source.unsplash.com/300x200/?teaching" alt="Teaching" class="category-img">
+            <div class="category-title">Online Tutoring</div>
+        </div>
+        <div class="category-card">
+            <img src="https://source.unsplash.com/300x200/?handyman" alt="Handyman" class="category-img">
+            <div class="category-title">Handyman</div>
+        </div>
+        <div class="category-card">
+            <img src="https://source.unsplash.com/300x200/?design" alt="Design" class="category-img">
+            <div class="category-title">Graphic Design</div>
+        </div>
+        <div class="category-card">
+            <img src="https://source.unsplash.com/300x200/?fitness" alt="Fitness" class="category-img">
+            <div class="category-title">Personal Training</div>
+        </div>
+        <div class="category-card">
+            <img src="https://source.unsplash.com/300x200/?programming" alt="Programming" class="category-img">
+            <div class="category-title">Web Development</div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item active">
+            <span class="material-icons">home</span>
+            Home
+        </a>
+        <a href="publish.html" class="nav-item">
+            <span class="material-icons">add_circle_outline</span>
+            Anbieten
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="material-icons">chat</span>
+            Nachrichten
+        </a>
+        <a href="profile.html" class="nav-item">
+            <span class="material-icons">person_outline</span>
+            Profil
+        </a>
+    </nav>
+</body>
+</html> 

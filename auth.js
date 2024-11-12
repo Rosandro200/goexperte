@@ -1,6 +1,6 @@
 // Google OAuth 2.0 configuration
 const config = {
-    client_id: '500309865019-326i3m5ia79i0g9rrn5s387f43fcs4h4.apps.googleusercontent.com',
+    client_id: '728415410069-tu8iem08oftef83h9o03j331hn5vh56g.apps.googleusercontent.com',
     redirect_uri: 'https://goexperte.de',
     scope: 'openid email profile',
     response_type: 'code',

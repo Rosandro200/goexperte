@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expert - Dienstleistung veröffentlichen</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .header {
+            background-color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .publish-form {
+            padding: 1rem;
+            background: white;
+            margin: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #f8f8f8;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .price-input {
+            position: relative;
+        }
+
+        .price-input input {
+            padding-left: 2rem;
+        }
+
+        .price-input::before {
+            content: "€";
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .publish-btn {
+            background-color: #4285f4;
+            color: white;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .publish-btn:hover {
+            background-color: #357abd;
+        }
+
+        .location-toggle {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-btn.active {
+            background: #4285f4;
+            color: white;
+            border-color: #4285f4;
+        }
+
+        /* Bottom Navigation (kept from your index.html) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .nav-item.active {
+            color: #4285f4;
+        }
+
+        .material-icons {
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">Dienstleistung erstellen</div>
+        <button onclick="history.back()" style="background: none; border: none;">
+            <span class="material-icons">close</span>
+        </button>
+    </div>
+
+    <form class="publish-form">
+        <div class="form-group">
+            <label for="title">Titel</label>
+            <input type="text" id="title" placeholder="z.B. Professionelle Hausreinigung" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Kategorie</label>
+            <select id="category" required>
+                <option value="">Kategorie wählen</option>
+                <option value="cleaning">Reinigung</option>
+                <option value="tutoring">Nachhilfe</option>
+                <option value="handyman">Handwerker</option>
+                <option value="design">Design</option>
+                <option value="fitness">Fitness</option>
+                <option value="programming">Programmierung</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Art der Dienstleistung</label>
+            <div class="location-toggle">
+                <button type="button" class="toggle-btn active" onclick="toggleLocation('local')">Vor Ort</button>
+                <button type="button" class="toggle-btn" onclick="toggleLocation('online')">Online</button>
+            </div>
+            <div id="location-input">
+                <input type="text" id="city" placeholder="Stadt eingeben" list="german-cities">
+                <datalist id="german-cities">
+                    <option value="Berlin">
+                    <option value="Hamburg">
+                    <option value="München">
+                    <option value="Köln">
+                    <option value="Frankfurt">
+                    <!-- Add more German cities as needed -->
+                </datalist>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Preis</label>
+            <div class="price-input">
+                <input type="number" id="price" placeholder="0.00" min="0" step="0.01" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Beschreibung</label>
+            <textarea id="description" placeholder="Beschreiben Sie Ihre Dienstleistung..." required></textarea>
+        </div>
+
+        <button type="submit" class="publish-btn">Veröffentlichen</button>
+    </form>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <span class="material-icons">home</span>
+            Home
+        </a>
+        <a href="publish.html" class="nav-item active">
+            <span class="material-icons">add_circle_outline</span>
+            Anbieten
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="material-icons">chat</span>
+            Nachrichten
+        </a>
+        <a href="profile.html" class="nav-item">
+            <span class="material-icons">person_outline</span>
+            Profil
+        </a>
+    </nav>
+
+    <script>
+        function toggleLocation(type) {
+            const buttons = document.querySelectorAll('.toggle-btn');
+            const locationInput = document.getElementById('location-input');
+            
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (type === 'online') {
+                locationInput.style.display = 'none';
+                document.getElementById('city').removeAttribute('required');
+            } else {
+                locationInput.style.display = 'block';
+                document.getElementById('city').setAttribute('required', 'required');
+            }
+        }
+    </script>
+</body>
+</html> 
