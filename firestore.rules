@@ -2,34 +2,34 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper function to check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Helper function to check if user owns the document
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
     match /gigs/{gigId} {
-      allow read: if true;  // Anyone can read gigs
-      allow create: if isAuthenticated(); 
-      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidGig(); 
+      allow update: if isAuthenticated() && (
+        isOwner(resource.data.userId) || 
+        (request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['rating', 'reviews', 'views']))
+      );
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
       
-      // Add validation rules
       function isValidGig() {
         let gig = request.resource.data;
-        return gig.title.size() >= 5 && 
-               gig.title.size() <= 100 &&
+        return gig.title.size() >= 1 && 
+               gig.description.size() >= 1 &&
                gig.price >= 0 &&
-               gig.description.size() >= 20;
+               gig.rating >= 0 && gig.rating <= 5 &&
+               gig.views >= 0 &&
+               gig.status in ['active', 'completed', 'cancelled'] &&
+               gig.reviews is list;
       }
-    }
-
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if isAuthenticated() && isOwner(userId);
     }
   }
 }

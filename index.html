@@ -220,6 +220,47 @@
             padding: 2rem;
             color: #666;
         }
+
+        .gig-stats {
+            text-align: right;
+            margin-left: auto;
+        }
+
+        .gig-rating {
+            color: #ffc107;
+            font-size: 0.9rem;
+        }
+
+        .gig-views {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .gig-category {
+            background: #e3f2fd;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .gig-status {
+            background: #e8f5e9;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .gig-reviews {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .review {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -350,22 +391,34 @@
         }
 
         function createGigElement(gig, gigId) {
+            const ratingStars = '★'.repeat(Math.round(gig.rating)) + '☆'.repeat(5 - Math.round(gig.rating));
+            
             return `
                 <div class="gig-card" data-gig-id="${gigId}">
                     <div class="gig-header">
                         <img src="${escapeHtml(gig.userPicture)}" alt="${escapeHtml(gig.userName)}" class="gig-user-pic">
                         <div class="gig-user-info">
                             <div class="gig-user-name">${escapeHtml(gig.userName)}</div>
-                            <div class="gig-location">${gig.isOnline ? 'Online' : escapeHtml(gig.location)}</div>
+                            <div class="gig-location">${escapeHtml(gig.location)}</div>
+                        </div>
+                        <div class="gig-stats">
+                            <div class="gig-rating">${ratingStars} (${gig.rating})</div>
+                            <div class="gig-views">${gig.views} Aufrufe</div>
                         </div>
                     </div>
                     <div class="gig-title">${escapeHtml(gig.title)}</div>
                     <div class="gig-details">
-                        <span>${escapeHtml(gig.category)}</span>
+                        <span class="gig-category">${escapeHtml(gig.category)}</span>
                         <span>•</span>
                         <span class="gig-price">${gig.price.toFixed(2)} €</span>
+                        <span>•</span>
+                        <span class="gig-status">${escapeHtml(gig.status)}</span>
                     </div>
                     <div class="gig-description">${escapeHtml(gig.description)}</div>
+                    <div class="gig-reviews">
+                        <h4>Bewertungen (${gig.reviews.length})</h4>
+                        ${gig.reviews.map(review => `<div class="review">${escapeHtml(review)}</div>`).join('')}
+                    </div>
                 </div>
             `;
         }
