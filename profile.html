@@ -65,6 +65,58 @@
             font-size: 1.5rem;
             margin-bottom: 0.2rem;
         }
+
+        .profile-content {
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .profile-picture {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-email {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 1rem;
+            font-size: 1rem;
+        }
+
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
     </style>
     <script src="auth-check.js"></script>
     <script>
@@ -76,6 +128,17 @@
 <body>
     <div class="header">
         <div class="header-title">Profil</div>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-header">
+            <img id="profile-picture" class="profile-picture" src="" alt="Profile Picture">
+            <div class="profile-info">
+                <div id="profile-name" class="profile-name"></div>
+                <div id="profile-email" class="profile-email"></div>
+            </div>
+        </div>
+        <button onclick="logout()" class="logout-btn">Abmelden</button>
     </div>
 
     <nav class="bottom-nav">
@@ -96,5 +159,26 @@
             Profil
         </a>
     </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const userData = JSON.parse(localStorage.getItem('user'));
+            if (!userData) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Display user information
+            document.getElementById('profile-picture').src = userData.picture || 'default-profile.png';
+            document.getElementById('profile-name').textContent = userData.name;
+            document.getElementById('profile-email').textContent = userData.email;
+        });
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
 </html> 

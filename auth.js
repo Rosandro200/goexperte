@@ -1,23 +1,12 @@
 // Google OAuth 2.0 configuration
 const config = {
     client_id: '500309865019-326i3m5ia79i0g9rrn5s387f43fcs4h4.apps.googleusercontent.com',
-    redirect_uri: 'https://goexperte.de',
+    redirect_uri: 'https://goexperte.de/login.html',
     scope: 'openid email profile',
-    response_type: 'code',
-    access_type: 'offline',
-    prompt: 'consent',
-    state: generateRandomString(16)
+    response_type: 'token',
+    access_type: 'online',
+    prompt: 'select_account'
 };
-
-// Generate random string for state parameter
-function generateRandomString(length) {
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let text = '';
-    for (let i = 0; i < length; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
-}
 
 // Initialize Google Sign-In
 function initGoogleSignIn() {
@@ -30,8 +19,6 @@ function initGoogleSignIn() {
             `&redirect_uri=${encodeURIComponent(config.redirect_uri)}` +
             `&response_type=${encodeURIComponent(config.response_type)}` +
             `&scope=${encodeURIComponent(config.scope)}` +
-            `&access_type=${encodeURIComponent(config.access_type)}` +
-            `&state=${encodeURIComponent(config.state)}` +
             `&prompt=${encodeURIComponent(config.prompt)}`;
 
         // Redirect to Google Sign-In
@@ -41,30 +28,65 @@ function initGoogleSignIn() {
 
 // Handle the OAuth callback
 function handleCallback() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-    const state = urlParams.get('state');
-    
-    // Verify state parameter matches what we sent
-    if (state !== config.state) {
-        console.error('State parameter mismatch');
-        return;
-    }
-
-    if (code) {
-        // For demo purposes, we'll just store a dummy user object
-        const dummyUser = {
-            email: 'user@example.com',
-            name: 'Test User'
-        };
-        localStorage.setItem('user', JSON.stringify(dummyUser));
-
-        // Get return URL from localStorage
-        const returnUrl = localStorage.getItem('returnUrl') || 'index.html';
-        localStorage.removeItem('returnUrl'); // Clear the stored return URL
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+        const params = new URLSearchParams(hash);
+        const accessToken = params.get('access_token');
         
-        // Redirect to the return URL
-        window.location.href = returnUrl;
+        if (accessToken) {
+            // Get user info using the access token
+            fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(userData => {
+                // Store user data in localStorage
+                const user = {
+                    name: userData.name,
+                    email: userData.email,
+                    picture: userData.picture,
+                    accessToken: accessToken
+                };
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                // Get return URL from localStorage or default to index
+                const returnUrl = localStorage.getItem('returnUrl') || 'index.html';
+                localStorage.removeItem('returnUrl');
+                
+                // Redirect to the return URL
+                window.location.href = returnUrl;
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+                alert('Login failed. Please try again.');
+            });
+        }
+    }
+}
+
+// Check if user is logged in
+function checkLoginStatus() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.accessToken) {
+        // Verify token is still valid
+        fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: {
+                'Authorization': `Bearer ${user.accessToken}`
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Token is invalid, clear storage and redirect to login
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            }
+        })
+        .catch(() => {
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
     }
 }
 
@@ -73,7 +95,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initGoogleSignIn();
     
     // Check if this is a callback from Google OAuth
-    if (window.location.search.includes('code=')) {
+    if (window.location.hash && window.location.hash.includes('access_token')) {
         handleCallback();
+    } else {
+        checkLoginStatus();
     }
 }); 
