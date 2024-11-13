@@ -195,6 +195,9 @@
         }
     </style>
     <script src="auth-check.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
@@ -209,7 +212,7 @@
         </button>
     </div>
 
-    <form class="publish-form">
+    <form class="publish-form" id="publish-form">
         <div class="form-group">
             <label for="title">Titel</label>
             <input type="text" id="title" placeholder="z.B. Professionelle Hausreinigung" required>
@@ -324,6 +327,41 @@
 
     <script async
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC4ew-3-uKu0BjEVSuCxCHYKg-moV5-_KE&libraries=places&callback=initMap&language=de">
+    </script>
+
+    <script>
+        document.getElementById('publish-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const gigData = {
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                location: document.getElementById('city').value,
+                price: parseFloat(document.getElementById('price').value),
+                description: document.getElementById('description').value,
+                isOnline: document.querySelector('.toggle-btn.active').textContent === 'Online',
+                createdAt: new Date(),
+                userId: user.email,
+                userName: user.name,
+                userPicture: user.picture
+            };
+
+            try {
+                // Add the gig to Firestore
+                await db.collection('gigs').add(gigData);
+                alert('Dienstleistung erfolgreich veröffentlicht!');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error publishing gig:', error);
+                alert('Fehler beim Veröffentlichen. Bitte versuchen Sie es erneut.');
+            }
+        });
     </script>
 </body>
 </html> 

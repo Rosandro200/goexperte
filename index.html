@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expert - Home</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -113,6 +116,110 @@
             font-size: 1.5rem;
             margin-bottom: 0.2rem;
         }
+
+        /* Add these styles */
+        .gigs-container {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .gig-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .gig-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .gig-user-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .gig-user-info {
+            flex: 1;
+        }
+
+        .gig-user-name {
+            font-weight: 500;
+        }
+
+        .gig-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .gig-details {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .gig-price {
+            font-weight: 500;
+            color: #4285f4;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4285f4;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .load-more-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-top: 1rem;
+            cursor: pointer;
+        }
+
+        .load-more-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 2rem;
+            color: #f44336;
+        }
+
+        .no-gigs {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -123,31 +230,8 @@
         </div>
     </div>
 
-    <div class="categories">
-        <div class="category-card">
-            <img src="https://source.unsplash.com/300x200/?cleaning" alt="Cleaning" class="category-img">
-            <div class="category-title">Home Cleaning</div>
-        </div>
-        <div class="category-card">
-            <img src="https://source.unsplash.com/300x200/?teaching" alt="Teaching" class="category-img">
-            <div class="category-title">Online Tutoring</div>
-        </div>
-        <div class="category-card">
-            <img src="https://source.unsplash.com/300x200/?handyman" alt="Handyman" class="category-img">
-            <div class="category-title">Handyman</div>
-        </div>
-        <div class="category-card">
-            <img src="https://source.unsplash.com/300x200/?design" alt="Design" class="category-img">
-            <div class="category-title">Graphic Design</div>
-        </div>
-        <div class="category-card">
-            <img src="https://source.unsplash.com/300x200/?fitness" alt="Fitness" class="category-img">
-            <div class="category-title">Personal Training</div>
-        </div>
-        <div class="category-card">
-            <img src="https://source.unsplash.com/300x200/?programming" alt="Programming" class="category-img">
-            <div class="category-title">Web Development</div>
-        </div>
+    <div class="gigs-container" id="gigs-container">
+        <!-- Gigs will be loaded here -->
     </div>
 
     <nav class="bottom-nav">
@@ -168,5 +252,135 @@
             Profil
         </a>
     </nav>
+
+    <script>
+        async function loadGigs() {
+            const gigsContainer = document.getElementById('gigs-container');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.innerHTML = `
+                <div class="loading-spinner"></div>
+                <p>Lade Dienstleistungen...</p>
+            `;
+            gigsContainer.appendChild(loadingDiv);
+
+            try {
+                // Add pagination
+                const GIGS_PER_PAGE = 10;
+                let lastDoc = null;
+                
+                const query = db.collection('gigs')
+                    .orderBy('createdAt', 'desc')
+                    .limit(GIGS_PER_PAGE);
+
+                const querySnapshot = await query.get();
+                gigsContainer.innerHTML = ''; // Clear loading state
+
+                if (querySnapshot.empty) {
+                    gigsContainer.innerHTML = '<p class="no-gigs">Keine Dienstleistungen gefunden.</p>';
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    lastDoc = doc;
+                    const gig = doc.data();
+                    const gigElement = createGigElement(gig, doc.id);
+                    gigsContainer.innerHTML += gigElement;
+                });
+
+                // Add load more button if there are more gigs
+                if (querySnapshot.docs.length === GIGS_PER_PAGE) {
+                    const loadMoreBtn = document.createElement('button');
+                    loadMoreBtn.className = 'load-more-btn';
+                    loadMoreBtn.textContent = 'Mehr laden';
+                    loadMoreBtn.onclick = () => loadMoreGigs(lastDoc);
+                    gigsContainer.appendChild(loadMoreBtn);
+                }
+
+            } catch (error) {
+                console.error('Error loading gigs:', error);
+                gigsContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>Fehler beim Laden der Dienstleistungen.</p>
+                        <button onclick="loadGigs()">Erneut versuchen</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function loadMoreGigs(lastDoc) {
+            const GIGS_PER_PAGE = 10;
+            const gigsContainer = document.getElementById('gigs-container');
+            const loadMoreBtn = gigsContainer.querySelector('.load-more-btn');
+            loadMoreBtn.disabled = true;
+            loadMoreBtn.textContent = 'Lade...';
+
+            try {
+                const query = db.collection('gigs')
+                    .orderBy('createdAt', 'desc')
+                    .startAfter(lastDoc)
+                    .limit(GIGS_PER_PAGE);
+
+                const querySnapshot = await query.get();
+                
+                if (querySnapshot.empty) {
+                    loadMoreBtn.remove();
+                    return;
+                }
+
+                querySnapshot.forEach((doc) => {
+                    lastDoc = doc;
+                    const gig = doc.data();
+                    const gigElement = createGigElement(gig, doc.id);
+                    // Insert before the load more button
+                    loadMoreBtn.insertAdjacentHTML('beforebegin', gigElement);
+                });
+
+                if (querySnapshot.docs.length < GIGS_PER_PAGE) {
+                    loadMoreBtn.remove();
+                } else {
+                    loadMoreBtn.disabled = false;
+                    loadMoreBtn.textContent = 'Mehr laden';
+                }
+            } catch (error) {
+                console.error('Error loading more gigs:', error);
+                loadMoreBtn.textContent = 'Fehler - Klicken zum erneuten Laden';
+                loadMoreBtn.disabled = false;
+            }
+        }
+
+        function createGigElement(gig, gigId) {
+            return `
+                <div class="gig-card" data-gig-id="${gigId}">
+                    <div class="gig-header">
+                        <img src="${escapeHtml(gig.userPicture)}" alt="${escapeHtml(gig.userName)}" class="gig-user-pic">
+                        <div class="gig-user-info">
+                            <div class="gig-user-name">${escapeHtml(gig.userName)}</div>
+                            <div class="gig-location">${gig.isOnline ? 'Online' : escapeHtml(gig.location)}</div>
+                        </div>
+                    </div>
+                    <div class="gig-title">${escapeHtml(gig.title)}</div>
+                    <div class="gig-details">
+                        <span>${escapeHtml(gig.category)}</span>
+                        <span>•</span>
+                        <span class="gig-price">${gig.price.toFixed(2)} €</span>
+                    </div>
+                    <div class="gig-description">${escapeHtml(gig.description)}</div>
+                </div>
+            `;
+        }
+
+        // Helper function to prevent XSS
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        document.addEventListener('DOMContentLoaded', loadGigs);
+    </script>
 </body>
 </html> 
