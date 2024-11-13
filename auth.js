@@ -52,12 +52,19 @@ function handleCallback() {
     }
 
     if (code) {
-        // Exchange authorization code for tokens
-        // Note: This should be done on your backend server, not in client-side JavaScript
-        // for security reasons. This is just for demonstration.
-        console.log('Authorization code received:', code);
-        // Redirect to your backend endpoint that will handle the token exchange
-        window.location.href = `${config.redirect_uri}/auth/callback?code=${code}`;
+        // For demo purposes, we'll just store a dummy user object
+        const dummyUser = {
+            email: 'user@example.com',
+            name: 'Test User'
+        };
+        localStorage.setItem('user', JSON.stringify(dummyUser));
+
+        // Get return URL from localStorage
+        const returnUrl = localStorage.getItem('returnUrl') || 'index.html';
+        localStorage.removeItem('returnUrl'); // Clear the stored return URL
+        
+        // Redirect to the return URL
+        window.location.href = returnUrl;
     }
 }
 

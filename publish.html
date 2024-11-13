@@ -157,7 +157,49 @@
             font-size: 1.5rem;
             margin-bottom: 0.2rem;
         }
+
+        .pac-container {
+            background-color: #fff;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: -1px;
+        }
+
+        .pac-item {
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .pac-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .pac-item-query {
+            font-size: 14px;
+            color: #333;
+        }
+
+        #location-input {
+            position: relative;
+        }
+
+        #city {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #f8f8f8;
+        }
     </style>
+    <script src="auth-check.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+        });
+    </script>
 </head>
 <body>
     <div class="header">
@@ -193,15 +235,10 @@
                 <button type="button" class="toggle-btn" onclick="toggleLocation('online')">Online</button>
             </div>
             <div id="location-input">
-                <input type="text" id="city" placeholder="Stadt eingeben" list="german-cities">
-                <datalist id="german-cities">
-                    <option value="Berlin">
-                    <option value="Hamburg">
-                    <option value="München">
-                    <option value="Köln">
-                    <option value="Frankfurt">
-                    <!-- Add more German cities as needed -->
-                </datalist>
+                <input type="text" 
+                       id="city" 
+                       placeholder="Stadt eingeben" 
+                       autocomplete="on">
             </div>
         </div>
 
@@ -225,21 +262,45 @@
             <span class="material-icons">home</span>
             Home
         </a>
-        <a href="publish.html" class="nav-item active">
+        <a href="#" class="nav-item">
+            <span class="material-icons">search</span>
+            Suche
+        </a>
+        <a href="#" class="nav-item active">
             <span class="material-icons">add_circle_outline</span>
-            Anbieten
+            Erstellen
         </a>
-        <a href="messages.html" class="nav-item">
-            <span class="material-icons">chat</span>
-            Nachrichten
-        </a>
-        <a href="profile.html" class="nav-item">
+        <a href="#" class="nav-item">
             <span class="material-icons">person_outline</span>
             Profil
         </a>
     </nav>
 
     <script>
+        function initMap() {
+            const input = document.getElementById('city');
+            const options = {
+                componentRestrictions: { country: "de" },
+                fields: ["formatted_address", "geometry", "name"],
+                strictBounds: false,
+                types: ["locality", "sublocality"]  // This will show cities and districts
+            };
+
+            const autocomplete = new google.maps.places.Autocomplete(input, options);
+
+            // When a place is selected
+            autocomplete.addListener("place_changed", () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) {
+                    console.log("No details available for input: '" + place.name + "'");
+                    return;
+                }
+
+                // Set the input value to the selected place name
+                input.value = place.formatted_address;
+            });
+        }
+
         function toggleLocation(type) {
             const buttons = document.querySelectorAll('.toggle-btn');
             const locationInput = document.getElementById('location-input');
@@ -249,12 +310,20 @@
             
             if (type === 'online') {
                 locationInput.style.display = 'none';
+                document.getElementById('city').value = '';
                 document.getElementById('city').removeAttribute('required');
             } else {
                 locationInput.style.display = 'block';
                 document.getElementById('city').setAttribute('required', 'required');
             }
         }
+
+        // Initialize when the page loads
+        window.initMap = initMap;
+    </script>
+
+    <script async
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC4ew-3-uKu0BjEVSuCxCHYKg-moV5-_KE&libraries=places&callback=initMap&language=de">
     </script>
 </body>
 </html> 

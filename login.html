@@ -110,6 +110,14 @@
             border-bottom: 1px solid #ddd;
         }
     </style>
+    <script>
+        // Check if user is already logged in
+        if (localStorage.getItem('user')) {
+            const returnUrl = localStorage.getItem('returnUrl') || 'index.html';
+            localStorage.removeItem('returnUrl');
+            window.location.href = returnUrl;
+        }
+    </script>
 </head>
 <body>
     <div class="login-container">
