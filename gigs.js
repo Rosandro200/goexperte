@@ -34,28 +34,21 @@ class GigManager {
         return gigId;
     }
 
-    // Get all gigs with console logs for debugging
+    // Get all gigs
     get(callback) {
-        console.log('Getting gigs...');
         const gigs_ref = this.database.ref('gigs');
         gigs_ref.on('value', (snapshot) => {
-            console.log('Snapshot received:', snapshot.val());
             const data = snapshot.val();
             const gigs = [];
             
-            if (data) {  // Add this check
-                for(let id in data) {
-                    gigs.push({ id, ...data[id] });
-                }
-                
-                // Sort by createdAt in descending order
-                gigs.sort((a, b) => b.createdAt - a.createdAt);
+            for(let id in data) {
+                gigs.push({ id, ...data[id] });
             }
             
-            console.log('Processed gigs:', gigs);
+            // Sort by createdAt in descending order
+            gigs.sort((a, b) => b.createdAt - a.createdAt);
+            
             callback(gigs);
-        }, (error) => {
-            console.error('Error getting gigs:', error);
         });
     }
 
