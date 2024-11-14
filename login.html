@@ -109,6 +109,54 @@
             flex: 1;
             border-bottom: 1px solid #ddd;
         }
+
+        .address-fields {
+            margin-bottom: 1.5rem;
+        }
+
+        .address-group {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .address-field {
+            position: relative;
+        }
+
+        .address-field input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: #f8f8f8;
+        }
+
+        .address-field label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+
+        /* Style for autocomplete dropdown */
+        .pac-container {
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+            border-top: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .pac-item {
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .pac-item:hover {
+            background-color: #f5f5f5;
+        }
     </style>
     <script>
         // Check if user is already logged in
@@ -118,6 +166,7 @@
             window.location.href = returnUrl;
         }
     </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC4ew-3-uKu0BjEVSuCxCHYKg-moV5-_KE&libraries=places&language=de"></script>
 </head>
 <body>
     <div class="login-container">
@@ -136,10 +185,74 @@
                 <label for="password">Passwort</label>
                 <input type="password" id="password" placeholder="Passwort eingeben">
             </div>
+            <div class="address-fields">
+                <label>Adresse</label>
+                <input type="text" id="street-address" placeholder="Straße und Hausnummer" class="input">
+                
+                <div class="address-group">
+                    <div class="address-field">
+                        <input type="text" id="city" placeholder="Stadt" readonly>
+                    </div>
+                    <div class="address-field">
+                        <input type="text" id="state" placeholder="Bundesland" readonly>
+                    </div>
+                    <div class="address-field">
+                        <input type="text" id="postal-code" placeholder="PLZ" readonly>
+                    </div>
+                </div>
+            </div>
             <button class="login-btn">Anmelden</button>
         </div>
     </div>
 
     <script src="auth.js"></script>
+    <script>
+    function initAutocomplete() {
+        const addressInput = document.getElementById('street-address');
+        const cityInput = document.getElementById('city');
+        const stateInput = document.getElementById('state');
+        const postalInput = document.getElementById('postal-code');
+
+        const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+            componentRestrictions: { country: 'de' },
+            fields: ['address_components', 'formatted_address'],
+            types: ['address']
+        });
+
+        autocomplete.addListener('place_changed', function() {
+            const place = autocomplete.getPlace();
+            
+            // Reset fields
+            cityInput.value = '';
+            stateInput.value = '';
+            postalInput.value = '';
+
+            // Extract address components
+            for (const component of place.address_components) {
+                const type = component.types[0];
+
+                if (type === 'locality') {
+                    cityInput.value = component.long_name;
+                }
+                if (type === 'administrative_area_level_1') {
+                    stateInput.value = component.long_name;
+                }
+                if (type === 'postal_code') {
+                    postalInput.value = component.long_name;
+                }
+            }
+        });
+
+        // Prevent form submission on enter
+        addressInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+            }
+        });
+    }
+
+    // Initialize Google Places Autocomplete
+    document.addEventListener('DOMContentLoaded', initAutocomplete);
+    </script>
 </body>
 </html> 
