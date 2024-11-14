@@ -112,6 +112,7 @@
 
         .address-fields {
             margin-bottom: 1.5rem;
+            position: relative;
         }
 
         .address-group {
@@ -147,15 +148,35 @@
             border: 1px solid #ddd;
             border-top: none;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: -1px;
+            width: 100% !important;
+            left: 0 !important;
+            position: absolute !important;
+            z-index: 1000;
         }
 
         .pac-item {
             padding: 8px 15px;
             cursor: pointer;
+            font-size: 0.9rem;
         }
 
         .pac-item:hover {
             background-color: #f5f5f5;
+        }
+
+        .pac-item-query {
+            font-size: 0.9rem;
+        }
+
+        /* Add this to ensure proper positioning context */
+        .input-group {
+            position: relative;
+        }
+
+        #street-address {
+            position: relative;
+            z-index: 2;
         }
     </style>
     <script>
