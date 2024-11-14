@@ -6,7 +6,7 @@
     <title>Expert - Home</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="gigs.js"></script>
     <style>
@@ -296,7 +296,7 @@
     </nav>
 
     <script>
-        async function loadGigs() {
+        function loadGigs() {
             const gigsContainer = document.getElementById('gigs-container');
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'loading';
@@ -308,27 +308,19 @@
 
             try {
                 const gigManager = new GigManager();
-                const { gigs, lastDoc, hasMore } = await gigManager.loadGigs();
+                gigManager.onGigsUpdate((gigs) => {
+                    gigsContainer.innerHTML = '';
 
-                gigsContainer.innerHTML = '';
+                    if (gigs.length === 0) {
+                        gigsContainer.innerHTML = '<p class="no-gigs">Keine Dienstleistungen gefunden.</p>';
+                        return;
+                    }
 
-                if (gigs.length === 0) {
-                    gigsContainer.innerHTML = '<p class="no-gigs">Keine Dienstleistungen gefunden.</p>';
-                    return;
-                }
-
-                gigs.forEach(gig => {
-                    const gigElement = GigManager.createGigElement(gig);
-                    gigsContainer.innerHTML += gigElement;
+                    gigs.forEach(gig => {
+                        const gigElement = GigManager.createGigElement(gig);
+                        gigsContainer.innerHTML += gigElement;
+                    });
                 });
-
-                if (hasMore) {
-                    const loadMoreBtn = document.createElement('button');
-                    loadMoreBtn.className = 'load-more-btn';
-                    loadMoreBtn.textContent = 'Mehr laden';
-                    loadMoreBtn.onclick = () => loadMoreGigs(lastDoc);
-                    gigsContainer.appendChild(loadMoreBtn);
-                }
             } catch (error) {
                 console.error('Error loading gigs:', error);
                 gigsContainer.innerHTML = `
@@ -339,92 +331,6 @@
                 `;
             }
         }
-
-        async function loadMoreGigs(lastDoc) {
-            const GIGS_PER_PAGE = 10;
-            const gigsContainer = document.getElementById('gigs-container');
-            const loadMoreBtn = gigsContainer.querySelector('.load-more-btn');
-            loadMoreBtn.disabled = true;
-            loadMoreBtn.textContent = 'Lade...';
-
-            try {
-                const query = db.collection('gigs')
-                    .orderBy('createdAt', 'desc')
-                    .startAfter(lastDoc)
-                    .limit(GIGS_PER_PAGE);
-
-                const querySnapshot = await query.get();
-                
-                if (querySnapshot.empty) {
-                    loadMoreBtn.remove();
-                    return;
-                }
-
-                querySnapshot.forEach((doc) => {
-                    lastDoc = doc;
-                    const gig = doc.data();
-                    const gigElement = createGigElement(gig, doc.id);
-                    // Insert before the load more button
-                    loadMoreBtn.insertAdjacentHTML('beforebegin', gigElement);
-                });
-
-                if (querySnapshot.docs.length < GIGS_PER_PAGE) {
-                    loadMoreBtn.remove();
-                } else {
-                    loadMoreBtn.disabled = false;
-                    loadMoreBtn.textContent = 'Mehr laden';
-                }
-            } catch (error) {
-                console.error('Error loading more gigs:', error);
-                loadMoreBtn.textContent = 'Fehler - Klicken zum erneuten Laden';
-                loadMoreBtn.disabled = false;
-            }
-        }
-
-        function createGigElement(gig, gigId) {
-            const ratingStars = '★'.repeat(Math.round(gig.rating)) + '☆'.repeat(5 - Math.round(gig.rating));
-            
-            return `
-                <div class="gig-card" data-gig-id="${gigId}">
-                    <div class="gig-header">
-                        <img src="${escapeHtml(gig.userPicture)}" alt="${escapeHtml(gig.userName)}" class="gig-user-pic">
-                        <div class="gig-user-info">
-                            <div class="gig-user-name">${escapeHtml(gig.userName)}</div>
-                            <div class="gig-location">${escapeHtml(gig.location)}</div>
-                        </div>
-                        <div class="gig-stats">
-                            <div class="gig-rating">${ratingStars} (${gig.rating})</div>
-                            <div class="gig-views">${gig.views} Aufrufe</div>
-                        </div>
-                    </div>
-                    <div class="gig-title">${escapeHtml(gig.title)}</div>
-                    <div class="gig-details">
-                        <span class="gig-category">${escapeHtml(gig.category)}</span>
-                        <span>•</span>
-                        <span class="gig-price">${gig.price.toFixed(2)} €</span>
-                        <span>•</span>
-                        <span class="gig-status">${escapeHtml(gig.status)}</span>
-                    </div>
-                    <div class="gig-description">${escapeHtml(gig.description)}</div>
-                    <div class="gig-reviews">
-                        <h4>Bewertungen (${gig.reviews.length})</h4>
-                        ${gig.reviews.map(review => `<div class="review">${escapeHtml(review)}</div>`).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Helper function to prevent XSS
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        document.addEventListener('DOMContentLoaded', loadGigs);
 
         // Add search functionality
         const searchInput = document.querySelector('.search-bar');
