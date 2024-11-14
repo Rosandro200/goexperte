@@ -198,6 +198,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
+    <script src="gigs.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             checkAuth();
@@ -333,37 +334,23 @@
         document.getElementById('publish-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // Create gig data matching database structure
-            const gigData = {
-                title: document.getElementById('title').value,
-                category: document.getElementById('category').value,
-                description: document.getElementById('description').value,
-                location: document.getElementById('city').value || 'Online',
-                price: parseFloat(document.getElementById('price').value),
-                rating: 0,  // Initial rating
-                reviews: [], // Empty reviews array
-                status: 'active', // Initial status
-                userId: user.email,
-                userName: user.name,
-                userPicture: user.picture,
-                views: 0,  // Initial views count
-                createdAt: firebase.firestore.FieldValue.serverTimestamp() // Server timestamp
-            };
-
+            const gigManager = new GigManager();
+            
             try {
-                // Add the gig to Firestore
-                await db.collection('gigs').add(gigData);
+                const gigData = {
+                    title: document.getElementById('title').value,
+                    category: document.getElementById('category').value,
+                    description: document.getElementById('description').value,
+                    location: document.getElementById('city').value || 'Online',
+                    price: parseFloat(document.getElementById('price').value)
+                };
+
+                await gigManager.createGig(gigData);
                 alert('Dienstleistung erfolgreich veröffentlicht!');
                 window.location.href = 'index.html';
             } catch (error) {
                 console.error('Error publishing gig:', error);
-                alert('Fehler beim Veröffentlichen. Bitte versuchen Sie es erneut.');
+                alert('Fehler beim Veröffentlichen: ' + error.message);
             }
         });
     </script>

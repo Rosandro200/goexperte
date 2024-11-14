@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
+    <script src="gigs.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -306,38 +307,28 @@
             gigsContainer.appendChild(loadingDiv);
 
             try {
-                // Add pagination
-                const GIGS_PER_PAGE = 10;
-                let lastDoc = null;
-                
-                const query = db.collection('gigs')
-                    .orderBy('createdAt', 'desc')
-                    .limit(GIGS_PER_PAGE);
+                const gigManager = new GigManager();
+                const { gigs, lastDoc, hasMore } = await gigManager.loadGigs();
 
-                const querySnapshot = await query.get();
-                gigsContainer.innerHTML = ''; // Clear loading state
+                gigsContainer.innerHTML = '';
 
-                if (querySnapshot.empty) {
+                if (gigs.length === 0) {
                     gigsContainer.innerHTML = '<p class="no-gigs">Keine Dienstleistungen gefunden.</p>';
                     return;
                 }
 
-                querySnapshot.forEach((doc) => {
-                    lastDoc = doc;
-                    const gig = doc.data();
-                    const gigElement = createGigElement(gig, doc.id);
+                gigs.forEach(gig => {
+                    const gigElement = GigManager.createGigElement(gig);
                     gigsContainer.innerHTML += gigElement;
                 });
 
-                // Add load more button if there are more gigs
-                if (querySnapshot.docs.length === GIGS_PER_PAGE) {
+                if (hasMore) {
                     const loadMoreBtn = document.createElement('button');
                     loadMoreBtn.className = 'load-more-btn';
                     loadMoreBtn.textContent = 'Mehr laden';
                     loadMoreBtn.onclick = () => loadMoreGigs(lastDoc);
                     gigsContainer.appendChild(loadMoreBtn);
                 }
-
             } catch (error) {
                 console.error('Error loading gigs:', error);
                 gigsContainer.innerHTML = `
@@ -434,6 +425,49 @@
         }
 
         document.addEventListener('DOMContentLoaded', loadGigs);
+
+        // Add search functionality
+        const searchInput = document.querySelector('.search-bar');
+        searchInput.addEventListener('input', debounce(async (e) => {
+            const searchTerm = e.target.value.trim();
+            if (searchTerm.length < 2) {
+                loadGigs();
+                return;
+            }
+
+            try {
+                const gigManager = new GigManager();
+                const results = await gigManager.searchGigs(searchTerm);
+                const gigsContainer = document.getElementById('gigs-container');
+                
+                gigsContainer.innerHTML = '';
+                
+                if (results.length === 0) {
+                    gigsContainer.innerHTML = '<p class="no-gigs">Keine Ergebnisse gefunden.</p>';
+                    return;
+                }
+
+                results.forEach(gig => {
+                    const gigElement = GigManager.createGigElement(gig);
+                    gigsContainer.innerHTML += gigElement;
+                });
+            } catch (error) {
+                console.error('Error searching gigs:', error);
+            }
+        }, 300));
+
+        // Debounce helper function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
     </script>
 </body>
 </html> 
