@@ -1,91 +1,70 @@
 // Gig operations and data handling
 class GigManager {
     constructor() {
-        this.db = window.db;
-        if (!this.db) {
-            throw new Error('Firestore not initialized');
+        this.database = window.database;
+        if (!this.database) {
+            throw new Error('Database not initialized');
         }
     }
 
     // Create a new gig
-    async createGig(gigData) {
-        try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            if (!user) throw new Error('User not authenticated');
+    save(gigData) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) throw new Error('User not authenticated');
 
-            const gig = {
-                ...gigData,
-                userId: user.email,
-                userName: user.name,
-                userPicture: user.picture,
-                rating: 1,
-                reviews: ["1"],
-                status: "active",
-                views: 1,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
+        const gig = {
+            title: gigData.title,
+            category: gigData.category,
+            description: gigData.description,
+            location: gigData.location,
+            price: gigData.price,
+            userId: user.email,
+            userName: user.name,
+            userPicture: user.picture,
+            rating: 1,
+            reviews: ["1"],
+            status: "active",
+            views: 1,
+            createdAt: Date.now()
+        };
 
-            const docRef = await this.db.collection('gigs').add(gig);
-            return docRef.id;
-        } catch (error) {
-            console.error('Error creating gig:', error);
-            throw error;
-        }
+        // Create unique ID for gig
+        const gigId = Date.now().toString();
+        this.database.ref('gigs/' + gigId).set(gig);
+        return gigId;
     }
 
-    // Load gigs with pagination
-    async loadGigs(lastDoc = null, limit = 10) {
-        try {
-            let query = this.db.collection('gigs')
-                .orderBy('createdAt', 'desc')
-                .limit(limit);
-
-            if (lastDoc) {
-                query = query.startAfter(lastDoc);
-            }
-
-            const snapshot = await query.get();
+    // Get all gigs
+    get(callback) {
+        const gigs_ref = this.database.ref('gigs');
+        gigs_ref.on('value', (snapshot) => {
+            const data = snapshot.val();
             const gigs = [];
-            snapshot.forEach(doc => {
-                gigs.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-
-            return {
-                gigs,
-                lastDoc: snapshot.docs[snapshot.docs.length - 1],
-                hasMore: snapshot.docs.length === limit
-            };
-        } catch (error) {
-            console.error('Error loading gigs:', error);
-            throw error;
-        }
+            
+            for(let id in data) {
+                gigs.push({ id, ...data[id] });
+            }
+            
+            // Sort by createdAt in descending order
+            gigs.sort((a, b) => b.createdAt - a.createdAt);
+            
+            callback(gigs);
+        });
     }
 
     // Search gigs
-    async searchGigs(searchTerm) {
-        try {
-            const snapshot = await this.db.collection('gigs')
-                .orderBy('title')
-                .startAt(searchTerm)
-                .endAt(searchTerm + '\uf8ff')
-                .get();
-
-            const results = [];
-            snapshot.forEach(doc => {
-                results.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-
-            return results;
-        } catch (error) {
-            console.error('Error searching gigs:', error);
-            throw error;
-        }
+    search(searchTerm, callback) {
+        const gigs_ref = this.database.ref('gigs');
+        gigs_ref.orderByChild('title').startAt(searchTerm).endAt(searchTerm + "\uf8ff").on('value', (snapshot) => {
+            const data = snapshot.val();
+            const gigs = [];
+            
+            for(let id in data) {
+                gigs.push({ id, ...data[id] });
+            }
+            
+            callback(gigs);
+        });
     }
 
     // Create HTML element for a gig
@@ -114,10 +93,6 @@ class GigManager {
                     <span class="gig-status">${escapeHtml(gig.status)}</span>
                 </div>
                 <div class="gig-description">${escapeHtml(gig.description)}</div>
-                <div class="gig-reviews">
-                    <h4>Bewertungen (${gig.reviews.length})</h4>
-                    ${gig.reviews.map(review => `<div class="review">${escapeHtml(review)}</div>`).join('')}
-                </div>
             </div>
         `;
     }
