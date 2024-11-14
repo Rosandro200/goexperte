@@ -1,7 +1,10 @@
 // Gig operations and data handling
 class GigManager {
     constructor() {
-        this.db = firebase.firestore();
+        this.db = window.db;
+        if (!this.db) {
+            throw new Error('Firestore not initialized');
+        }
     }
 
     // Create a new gig

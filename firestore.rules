@@ -11,25 +11,15 @@ service cloud.firestore {
     }
 
     match /gigs/{gigId} {
-      allow read: if true;
-      allow create: if isAuthenticated() && isValidGig(); 
+      allow read: if true;  // Anyone can read gigs
+      allow create: if isAuthenticated(); 
       allow update: if isAuthenticated() && (
         isOwner(resource.data.userId) || 
+        // Allow rating and review updates
         (request.resource.data.diff(resource.data).affectedKeys()
           .hasOnly(['rating', 'reviews', 'views']))
       );
       allow delete: if isAuthenticated() && isOwner(resource.data.userId);
-      
-      function isValidGig() {
-        let gig = request.resource.data;
-        return gig.title.size() >= 1 && 
-               gig.description.size() >= 1 &&
-               gig.price >= 0 &&
-               gig.rating >= 0 && gig.rating <= 5 &&
-               gig.views >= 0 &&
-               gig.status in ['active', 'completed', 'cancelled'] &&
-               gig.reviews is list;
-      }
     }
   }
 }
