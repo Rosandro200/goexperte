@@ -194,7 +194,6 @@
             background-color: #f8f8f8;
         }
     </style>
-    <script src="auth-check.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
     <script src="firebase-config.js"></script>
@@ -331,9 +330,9 @@
     </script>
 
     <script>
-        document.getElementById('publish-form').addEventListener('submit', async (e) => {
+        document.getElementById('publish-form').addEventListener('submit', function(e) {
             e.preventDefault();
-
+            
             try {
                 const gigManager = new GigManager();
                 const gigData = {
@@ -344,8 +343,12 @@
                     price: parseFloat(document.getElementById('price').value)
                 };
 
+                // Debug logs
+                console.log('Form Data:', gigData);
+                console.log('GigManager:', gigManager);
+                console.log('Database:', window.database);
+
                 gigManager.save(gigData);
-                window.location.href = 'index.html';
             } catch (error) {
                 console.error('Error publishing gig:', error);
                 alert('Error publishing gig: ' + error.message);

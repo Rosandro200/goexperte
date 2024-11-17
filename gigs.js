@@ -6,30 +6,51 @@ class GigManager {
 
     // Save gig to database
     save(gigData) {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (!user) throw new Error('User not authenticated');
+        return new Promise((resolve, reject) => {
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                if (!user) throw new Error('User not authenticated');
 
-        const gig = {
-            title: gigData.title,
-            category: gigData.category,
-            description: gigData.description,
-            location: gigData.location,
-            price: gigData.price,
-            userId: user.email,
-            userName: user.name,
-            userPicture: user.picture,
-            rating: 1,
-            reviews: ["1"],
-            status: "active",
-            views: 1,
-            createdAt: Date.now()
-        };
+                // Debug log
+                console.log('Creating gig with data:', gigData);
 
-        // Create a new gig reference with unique ID
-        const gigRef = this.database.ref('gigs/' + Date.now());
-        gigRef.set(gig);
+                const gig = {
+                    title: gigData.title,
+                    category: gigData.category,
+                    description: gigData.description,
+                    location: gigData.location,
+                    price: gigData.price,
+                    userId: user.email,
+                    userName: user.name,
+                    userPicture: user.picture,
+                    rating: 1,
+                    reviews: ["1"],
+                    status: "active",
+                    views: 1,
+                    createdAt: Date.now()
+                };
 
-        alert('Gig saved successfully!');
+                // Debug log
+                console.log('Final gig object:', gig);
+
+                // Create unique ID for gig
+                const gigId = Date.now().toString();
+                this.database.ref('gigs/' + gigId).set(gig, (error) => {
+                    if (error) {
+                        console.error('Error saving gig:', error);
+                        reject(error);
+                    } else {
+                        console.log('Gig saved successfully:', gigId);
+                        alert('Dienstleistung erfolgreich veröffentlicht!');
+                        window.location.href = 'index.html';
+                        resolve(gigId);
+                    }
+                });
+            } catch (error) {
+                console.error('Error in save method:', error);
+                reject(error);
+            }
+        });
     }
 
     // Get all gigs
