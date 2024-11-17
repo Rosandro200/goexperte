@@ -114,6 +114,12 @@ class GigManager {
                     <span class="gig-status">${escapeHtml(gig.status)}</span>
                 </div>
                 <div class="gig-description">${escapeHtml(gig.description)}</div>
+                <div class="gig-actions">
+                    <button class="contact-btn" onclick="contactExpert('${gig.id}', '${gig.userId}', '${gig.title}')">
+                        <span class="material-icons">chat</span>
+                        Experte kontaktieren
+                    </button>
+                </div>
             </div>
         `;
     }
@@ -126,6 +132,18 @@ function escapeHtml(unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// Add contact function
+function contactExpert(gigId, expertId, gigTitle) {
+    // Store chat context in localStorage
+    const chatContext = {
+        gigId: gigId,
+        expertId: expertId,
+        gigTitle: gigTitle
+    };
+    localStorage.setItem('currentChat', JSON.stringify(chatContext));
+    window.location.href = 'messages.html';
 }
 
 window.GigManager = GigManager; 
