@@ -117,6 +117,65 @@
         .logout-btn:hover {
             background-color: #d32f2f;
         }
+
+        .my-gigs-section {
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .gig-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .edit-btn, .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .edit-btn:hover {
+            background-color: #e3f2fd;
+        }
+
+        .delete-btn:hover {
+            background-color: #ffebee;
+        }
+
+        .edit-btn .material-icons {
+            color: #2196f3;
+        }
+
+        .delete-btn .material-icons {
+            color: #f44336;
+        }
+
+        .edit-form {
+            display: none;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .edit-form.active {
+            display: block;
+        }
+
+        .no-gigs-message {
+            text-align: center;
+            color: #666;
+            padding: 2rem;
+        }
     </style>
     <script src="auth-check.js"></script>
     <script>
@@ -139,6 +198,44 @@
             </div>
         </div>
         <button onclick="logout()" class="logout-btn">Abmelden</button>
+
+        <div class="my-gigs-section">
+            <h2 class="section-title">Meine Dienstleistungen</h2>
+            <div id="user-gigs-container"></div>
+        </div>
+    </div>
+
+    <!-- Edit form modal -->
+    <div id="edit-form" class="edit-form">
+        <h3>Dienstleistung bearbeiten</h3>
+        <form id="edit-gig-form">
+            <input type="hidden" id="edit-gig-id">
+            <div class="form-group">
+                <label for="edit-title">Titel</label>
+                <input type="text" id="edit-title" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-category">Kategorie</label>
+                <select id="edit-category" required>
+                    <option value="cleaning">Reinigung</option>
+                    <option value="tutoring">Nachhilfe</option>
+                    <option value="handyman">Handwerker</option>
+                    <option value="design">Design</option>
+                    <option value="fitness">Fitness</option>
+                    <option value="programming">Programmierung</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit-price">Preis</label>
+                <input type="number" id="edit-price" min="0" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-description">Beschreibung</label>
+                <textarea id="edit-description" required></textarea>
+            </div>
+            <button type="submit" class="save-btn">Speichern</button>
+            <button type="button" class="cancel-btn" onclick="cancelEdit()">Abbrechen</button>
+        </form>
     </div>
 
     <nav class="bottom-nav">
@@ -162,17 +259,93 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
-            const userData = JSON.parse(localStorage.getItem('user'));
-            if (!userData) {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
                 window.location.href = 'login.html';
                 return;
             }
 
             // Display user information
-            document.getElementById('profile-picture').src = userData.picture || 'default-profile.png';
-            document.getElementById('profile-name').textContent = userData.name;
-            document.getElementById('profile-email').textContent = userData.email;
+            document.getElementById('profile-picture').src = user.picture || 'default-profile.png';
+            document.getElementById('profile-name').textContent = user.name;
+            document.getElementById('profile-email').textContent = user.email;
+
+            // Load user's gigs
+            loadUserGigs(user.email);
+        });
+
+        function loadUserGigs(userEmail) {
+            const gigManager = new GigManager();
+            const container = document.getElementById('user-gigs-container');
+            
+            gigManager.getUserGigs(userEmail, (gigs) => {
+                container.innerHTML = '';
+                
+                if (gigs.length === 0) {
+                    container.innerHTML = '<p class="no-gigs-message">Sie haben noch keine Dienstleistungen veröffentlicht.</p>';
+                    return;
+                }
+
+                gigs.forEach(gig => {
+                    const gigElement = GigManager.createEditableGigElement(gig);
+                    container.innerHTML += gigElement;
+                });
+            });
+        }
+
+        async function deleteGig(gigId) {
+            if (confirm('Möchten Sie diese Dienstleistung wirklich löschen?')) {
+                try {
+                    const gigManager = new GigManager();
+                    await gigManager.deleteGig(gigId);
+                    alert('Dienstleistung erfolgreich gelöscht');
+                } catch (error) {
+                    alert('Fehler beim Löschen der Dienstleistung: ' + error.message);
+                }
+            }
+        }
+
+        function editGig(gigId) {
+            const gigCard = document.querySelector(`[data-gig-id="${gigId}"]`);
+            const gig = {
+                title: gigCard.querySelector('.gig-title').textContent,
+                category: gigCard.querySelector('.gig-category').textContent,
+                price: parseFloat(gigCard.querySelector('.gig-price').textContent),
+                description: gigCard.querySelector('.gig-description').textContent
+            };
+
+            document.getElementById('edit-gig-id').value = gigId;
+            document.getElementById('edit-title').value = gig.title;
+            document.getElementById('edit-category').value = gig.category;
+            document.getElementById('edit-price').value = gig.price;
+            document.getElementById('edit-description').value = gig.description;
+
+            document.getElementById('edit-form').classList.add('active');
+        }
+
+        function cancelEdit() {
+            document.getElementById('edit-form').classList.remove('active');
+        }
+
+        document.getElementById('edit-gig-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const gigId = document.getElementById('edit-gig-id').value;
+            const updatedData = {
+                title: document.getElementById('edit-title').value,
+                category: document.getElementById('edit-category').value,
+                price: parseFloat(document.getElementById('edit-price').value),
+                description: document.getElementById('edit-description').value
+            };
+
+            try {
+                const gigManager = new GigManager();
+                await gigManager.updateGig(gigId, updatedData);
+                alert('Dienstleistung erfolgreich aktualisiert');
+                document.getElementById('edit-form').classList.remove('active');
+            } catch (error) {
+                alert('Fehler beim Aktualisieren der Dienstleistung: ' + error.message);
+            }
         });
 
         function logout() {

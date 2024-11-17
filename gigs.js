@@ -117,6 +117,77 @@ class GigManager {
             </div>
         `;
     }
+
+    // Get gigs for specific user
+    getUserGigs(userEmail, callback) {
+        this.gigsRef
+            .orderByChild('userId')
+            .equalTo(userEmail)
+            .on('value', (snapshot) => {
+                const gigs = [];
+                snapshot.forEach((childSnapshot) => {
+                    gigs.push({
+                        id: childSnapshot.key,
+                        ...childSnapshot.val()
+                    });
+                });
+                callback(gigs);
+            });
+    }
+
+    // Delete gig
+    async deleteGig(gigId) {
+        try {
+            await this.gigsRef.child(gigId).remove();
+            return true;
+        } catch (error) {
+            console.error('Error deleting gig:', error);
+            throw error;
+        }
+    }
+
+    // Update gig
+    async updateGig(gigId, updatedData) {
+        try {
+            await this.gigsRef.child(gigId).update(updatedData);
+            return true;
+        } catch (error) {
+            console.error('Error updating gig:', error);
+            throw error;
+        }
+    }
+
+    // Create HTML element for editable gig
+    static createEditableGigElement(gig) {
+        return `
+            <div class="gig-card editable" data-gig-id="${gig.id}">
+                <div class="gig-header">
+                    <img src="${escapeHtml(gig.userPicture)}" alt="${escapeHtml(gig.userName)}" class="gig-user-pic">
+                    <div class="gig-user-info">
+                        <div class="gig-user-name">${escapeHtml(gig.userName)}</div>
+                        <div class="gig-location">${escapeHtml(gig.location)}</div>
+                    </div>
+                    <div class="gig-actions">
+                        <button onclick="editGig('${gig.id}')" class="edit-btn">
+                            <span class="material-icons">edit</span>
+                        </button>
+                        <button onclick="deleteGig('${gig.id}')" class="delete-btn">
+                            <span class="material-icons">delete</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="gig-title">${escapeHtml(gig.title)}</div>
+                <div class="gig-details">
+                    <span class="gig-category">${escapeHtml(gig.category)}</span>
+                    <span>•</span>
+                    <span class="gig-price">${gig.price.toFixed(2)} €</span>
+                    <span>•</span>
+                    <span class="gig-status">${escapeHtml(gig.status)}</span>
+                </div>
+                <div class="gig-description">${escapeHtml(gig.description)}</div>
+            </div>
+        `;
+    }
 }
 
 function escapeHtml(unsafe) {
