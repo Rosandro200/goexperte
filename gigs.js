@@ -97,7 +97,7 @@ class GigManager {
 
     static createGigElement(gig) {
         return `
-            <div class="gig-card" data-gig-id="${gig.id}">
+            <div class="gig-card" data-gig-id="${gig.id}" onclick="window.location.href='gig-details.html?id=${gig.id}'">
                 <div class="gig-header">
                     <img src="${escapeHtml(gig.userPicture)}" alt="${escapeHtml(gig.userName)}" class="gig-user-pic">
                     <div class="gig-user-info">

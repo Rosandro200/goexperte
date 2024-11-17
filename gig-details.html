@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expert - Dienstleistung Details</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            max-width: 600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding-bottom: 120px; /* Space for bottom buttons */
+        }
+
+        .header {
+            background-color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            padding: 0.5rem;
+        }
+
+        .gig-content {
+            padding: 1rem;
+        }
+
+        .gig-images {
+            margin: -1rem -1rem 1rem -1rem;
+            position: relative;
+            background: #ddd;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .image-gallery {
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            background: white;
+            scrollbar-width: none;
+        }
+
+        .image-gallery::-webkit-scrollbar {
+            display: none;
+        }
+
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .thumbnail.active {
+            border-color: #4285f4;
+        }
+
+        .expert-info {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .expert-picture {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .expert-details {
+            flex: 1;
+        }
+
+        .expert-name {
+            font-weight: 500;
+            margin-bottom: 0.2rem;
+        }
+
+        .expert-rating {
+            color: #ffc107;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        .gig-details {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .gig-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .gig-meta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            color: #666;
+        }
+
+        .gig-price {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #4285f4;
+            margin-bottom: 1rem;
+        }
+
+        .gig-description {
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .reviews-section {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .reviews-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .review {
+            padding: 1rem 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .review:last-child {
+            border-bottom: none;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-author {
+            font-weight: 500;
+        }
+
+        .review-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .review-rating {
+            color: #ffc107;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-text {
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .bottom-actions {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            background: white;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .contact-btn {
+            flex: 1;
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .contact-btn:hover {
+            background: #357abd;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .nav-item.active {
+            color: #4285f4;
+        }
+
+        .material-icons {
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" onclick="history.back()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <div class="header-title">Dienstleistung Details</div>
+    </div>
+
+    <div class="gig-content">
+        <div class="gig-images">
+            <img id="main-image" class="main-image" src="" alt="Dienstleistung">
+            <div class="image-gallery" id="image-gallery">
+                <!-- Images will be loaded here -->
+            </div>
+        </div>
+
+        <div class="expert-info">
+            <img id="expert-picture" class="expert-picture" src="" alt="Expert">
+            <div class="expert-details">
+                <div id="expert-name" class="expert-name"></div>
+                <div class="expert-rating">
+                    <span class="material-icons">star</span>
+                    <span id="expert-rating">4.5</span>
+                    <span id="reviews-count">(32 Bewertungen)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="gig-details">
+            <h1 id="gig-title" class="gig-title"></h1>
+            <div class="gig-meta">
+                <span id="gig-category"></span>
+                <span>•</span>
+                <span id="gig-location"></span>
+            </div>
+            <div id="gig-price" class="gig-price"></div>
+            <div id="gig-description" class="gig-description"></div>
+        </div>
+
+        <div class="reviews-section">
+            <div class="reviews-header">
+                <h2>Bewertungen</h2>
+                <span id="average-rating">4.5 ★</span>
+            </div>
+            <div id="reviews-container">
+                <!-- Reviews will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-actions">
+        <button id="contact-btn" class="contact-btn">
+            <span class="material-icons">chat</span>
+            Experte kontaktieren
+        </button>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <span class="material-icons">home</span>
+            Home
+        </a>
+        <a href="publish.html" class="nav-item">
+            <span class="material-icons">add_circle_outline</span>
+            Anbieten
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="material-icons">chat</span>
+            Nachrichten
+        </a>
+        <a href="profile.html" class="nav-item">
+            <span class="material-icons">person_outline</span>
+            Profil
+        </a>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const gigId = urlParams.get('id');
+            
+            if (!gigId) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            loadGigDetails(gigId);
+        });
+
+        function loadGigDetails(gigId) {
+            const gigRef = database.ref(`gigs/${gigId}`);
+            gigRef.once('value', snapshot => {
+                const gig = snapshot.val();
+                if (!gig) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Set gig images
+                document.getElementById('main-image').src = gig.images?.[0] || 'placeholder.jpg';
+                const gallery = document.getElementById('image-gallery');
+                if (gig.images) {
+                    gig.images.forEach((image, index) => {
+                        gallery.innerHTML += `
+                            <img src="${image}" 
+                                 alt="Bild ${index + 1}" 
+                                 class="thumbnail ${index === 0 ? 'active' : ''}"
+                                 onclick="setMainImage('${image}', this)">
+                        `;
+                    });
+                }
+
+                // Set expert info
+                document.getElementById('expert-picture').src = gig.userPicture;
+                document.getElementById('expert-name').textContent = gig.userName;
+                document.getElementById('expert-rating').textContent = gig.rating || '0.0';
+                document.getElementById('reviews-count').textContent = 
+                    `(${gig.reviews?.length || 0} Bewertungen)`;
+
+                // Set gig details
+                document.getElementById('gig-title').textContent = gig.title;
+                document.getElementById('gig-category').textContent = gig.category;
+                document.getElementById('gig-location').textContent = gig.location;
+                document.getElementById('gig-price').textContent = `${gig.price.toFixed(2)} €`;
+                document.getElementById('gig-description').textContent = gig.description;
+
+                // Set up contact button
+                document.getElementById('contact-btn').onclick = () => 
+                    contactExpert(gigId, gig.userId, gig.title);
+
+                // Load reviews
+                loadReviews(gig.reviews || []);
+            });
+        }
+
+        function setMainImage(src, thumbnail) {
+            document.getElementById('main-image').src = src;
+            document.querySelectorAll('.thumbnail').forEach(thumb => 
+                thumb.classList.remove('active'));
+            thumbnail.classList.add('active');
+        }
+
+        function loadReviews(reviews) {
+            const container = document.getElementById('reviews-container');
+            if (reviews.length === 0) {
+                container.innerHTML = '<p>Noch keine Bewertungen</p>';
+                return;
+            }
+
+            reviews.forEach(review => {
+                container.innerHTML += `
+                    <div class="review">
+                        <div class="review-header">
+                            <span class="review-author">${review.userName}</span>
+                            <span class="review-date">
+                                ${new Date(review.timestamp).toLocaleDateString()}
+                            </span>
+                        </div>
+                        <div class="review-rating">
+                            ${'★'.repeat(review.rating)}${'☆'.repeat(5-review.rating)}
+                        </div>
+                        <div class="review-text">${review.text}</div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html> 
