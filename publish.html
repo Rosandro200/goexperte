@@ -345,11 +345,10 @@
                 };
 
                 gigManager.save(gigData);
-                alert('Dienstleistung erfolgreich veröffentlicht!');
                 window.location.href = 'index.html';
             } catch (error) {
                 console.error('Error publishing gig:', error);
-                alert('Fehler beim Veröffentlichen: ' + error.message);
+                alert('Error publishing gig: ' + error.message);
             }
         });
     </script>

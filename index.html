@@ -298,81 +298,24 @@
     <script>
         function loadGigs() {
             const gigsContainer = document.getElementById('gigs-container');
-            gigsContainer.innerHTML = `
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <p>Lade Dienstleistungen...</p>
-                </div>
-            `;
-
-            try {
-                const gigManager = new GigManager();
-                gigManager.get((gigs) => {
-                    gigsContainer.innerHTML = '';
-
-                    if (!gigs || gigs.length === 0) {
-                        gigsContainer.innerHTML = '<p class="no-gigs">Keine Dienstleistungen gefunden.</p>';
-                        return;
-                    }
-
-                    gigs.forEach(gig => {
-                        const gigElement = GigManager.createGigElement(gig);
-                        gigsContainer.innerHTML += gigElement;
-                    });
+            const gigManager = new GigManager();
+            
+            gigManager.get((gigs) => {
+                gigsContainer.innerHTML = '';
+                
+                if (gigs.length === 0) {
+                    gigsContainer.innerHTML = '<p>No gigs found</p>';
+                    return;
+                }
+                
+                gigs.forEach(gig => {
+                    const gigElement = GigManager.createGigElement(gig);
+                    gigsContainer.innerHTML += gigElement;
                 });
-            } catch (error) {
-                console.error('Error loading gigs:', error);
-                gigsContainer.innerHTML = `
-                    <div class="error-message">
-                        <p>Fehler beim Laden der Dienstleistungen.</p>
-                        <button onclick="loadGigs()">Erneut versuchen</button>
-                    </div>
-                `;
-            }
+            });
         }
 
-        // Add search functionality
-        const searchInput = document.querySelector('.search-bar');
-        searchInput.addEventListener('input', debounce((e) => {
-            const searchTerm = e.target.value.trim();
-            if (searchTerm.length < 2) {
-                loadGigs();
-                return;
-            }
-
-            try {
-                const gigManager = new GigManager();
-                gigManager.search(searchTerm, (gigs) => {
-                    const gigsContainer = document.getElementById('gigs-container');
-                    gigsContainer.innerHTML = '';
-                    
-                    if (!gigs || gigs.length === 0) {
-                        gigsContainer.innerHTML = '<p class="no-gigs">Keine Ergebnisse gefunden.</p>';
-                        return;
-                    }
-
-                    gigs.forEach(gig => {
-                        const gigElement = GigManager.createGigElement(gig);
-                        gigsContainer.innerHTML += gigElement;
-                    });
-                });
-            } catch (error) {
-                console.error('Error searching gigs:', error);
-            }
-        }, 300));
-
-        // Debounce helper function
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
+        document.addEventListener('DOMContentLoaded', loadGigs);
     </script>
 </body>
 </html> 
