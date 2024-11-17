@@ -313,21 +313,28 @@
         if (chatContext) {
             // Create or open chat
             currentChatId = chatContext.chatId;
-            database.ref(`chats/${currentChatId}`).update({
-                gigId: chatContext.gigId,
-                gigTitle: chatContext.gigTitle,
-                participants: [
-                    {
-                        email: user.email,
-                        name: user.name
-                    },
-                    {
-                        email: chatContext.expertId,
-                        name: chatContext.expertName
-                    }
-                ]
+            
+            // Get expert's name from the gig
+            database.ref(`gigs/${chatContext.gigId}`).once('value', snapshot => {
+                const gig = snapshot.val();
+                const expertName = gig.userName;  // Get the actual name from the gig
+                
+                database.ref(`chats/${currentChatId}`).update({
+                    gigId: chatContext.gigId,
+                    gigTitle: chatContext.gigTitle,
+                    participants: [
+                        {
+                            email: user.email,
+                            name: user.name
+                        },
+                        {
+                            email: chatContext.expertId,
+                            name: expertName
+                        }
+                    ]
+                });
+                openChat(currentChatId);
             });
-            openChat(currentChatId);
             localStorage.removeItem('currentChat');
         } else {
             // Load chat list
