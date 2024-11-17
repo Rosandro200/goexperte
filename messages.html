@@ -7,8 +7,6 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-messaging.js"></script>
-    <script src="firebase-config.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -70,142 +68,35 @@
             margin-bottom: 0.2rem;
         }
 
-        .messages-container {
-            display: flex;
-            height: calc(100vh - 120px);
-        }
-
-        .chat-list {
-            width: 30%;
-            background: white;
-            border-right: 1px solid #ddd;
-            overflow-y: auto;
-        }
-
-        .chat-preview {
+        .chat-container {
             padding: 1rem;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
+            max-width: 600px;
+            margin: 0 auto;
         }
 
-        .chat-preview:hover {
-            background: #f5f5f5;
-        }
-
-        .chat-preview.active {
-            background: #e3f2fd;
-        }
-
-        .chat-preview-header {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .chat-preview-pic {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .chat-preview-name {
-            font-weight: 500;
-        }
-
-        .chat-preview-gig {
-            font-size: 0.8rem;
-            color: #666;
-        }
-
-        .chat-window {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: #f5f5f5;
-        }
-
-        .chat-header {
+        .message-box {
+            margin-bottom: 1rem;
             padding: 1rem;
             background: white;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .chat-messages {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .message {
-            max-width: 70%;
-            padding: 0.8rem;
-            border-radius: 15px;
-            position: relative;
-        }
-
-        .message.sent {
-            background: #4285f4;
-            color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 5px;
-        }
-
-        .message.received {
-            background: white;
-            align-self: flex-start;
-            border-bottom-left-radius: 5px;
-        }
-
-        .message-time {
-            font-size: 0.7rem;
-            opacity: 0.7;
-            margin-top: 0.3rem;
-        }
-
-        .chat-input {
-            padding: 1rem;
-            background: white;
-            border-top: 1px solid #ddd;
-            display: flex;
-            gap: 1rem;
-        }
-
-        .chat-input input {
-            flex: 1;
+        .message-input {
+            width: 100%;
             padding: 0.8rem;
             border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 1rem;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
         }
 
         .send-btn {
             background: #4285f4;
             color: white;
             border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .no-chat-selected {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -214,16 +105,12 @@
         <div class="header-title">Nachrichten</div>
     </div>
 
-    <div class="messages-container">
-        <div class="chat-list" id="chat-list">
-            <!-- Chat previews will be loaded here -->
+    <div class="chat-container">
+        <div class="message-box">
+            <input type="text" id="message" class="message-input" placeholder="Nachricht eingeben...">
+            <button onclick="save()" class="send-btn">Senden</button>
         </div>
-        
-        <div class="chat-window" id="chat-window">
-            <div class="no-chat-selected">
-                Wählen Sie einen Chat aus oder kontaktieren Sie einen Experten
-            </div>
-        </div>
+        <div id="messages"></div>
     </div>
 
     <nav class="bottom-nav">
@@ -245,160 +132,64 @@
         </a>
     </nav>
 
+    <script src="firebase-config.js"></script>
     <script>
-        class MessageManager {
-            constructor() {
-                this.database = firebase.database();
-                this.messaging = firebase.messaging();
-                this.user = JSON.parse(localStorage.getItem('user'));
-                this.currentChat = null;
-                
-                // Request notification permission
-                this.requestNotificationPermission();
-            }
-
-            async requestNotificationPermission() {
-                try {
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        const token = await this.messaging.getToken();
-                        this.saveTokenToDatabase(token);
-                    }
-                } catch (error) {
-                    console.error('Error getting permission:', error);
-                }
-            }
-
-            saveTokenToDatabase(token) {
-                if (this.user) {
-                    this.database.ref(`users/${this.user.email.replace('.', ',')}/fcmToken`)
-                        .set(token);
-                }
-            }
-
-            loadChats() {
-                const chatsRef = this.database.ref('chats');
-                chatsRef.on('value', (snapshot) => {
-                    const chatList = document.getElementById('chat-list');
-                    chatList.innerHTML = '';
-                    
-                    snapshot.forEach((childSnapshot) => {
-                        const chat = childSnapshot.val();
-                        if (chat.participants.includes(this.user.email)) {
-                            chatList.innerHTML += this.createChatPreview(chat);
-                        }
-                    });
-                });
-            }
-
-            createChatPreview(chat) {
-                const otherUser = chat.participants.find(p => p !== this.user.email);
-                return `
-                    <div class="chat-preview" onclick="messageManager.openChat('${chat.id}')">
-                        <div class="chat-preview-header">
-                            <img src="${chat.expertPicture}" alt="" class="chat-preview-pic">
-                            <div>
-                                <div class="chat-preview-name">${chat.expertName}</div>
-                                <div class="chat-preview-gig">${chat.gigTitle}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            openChat(chatId) {
-                this.currentChat = chatId;
-                const chatWindow = document.getElementById('chat-window');
-                
-                // Load chat messages
-                const messagesRef = this.database.ref(`messages/${chatId}`);
-                messagesRef.on('value', (snapshot) => {
-                    const messages = [];
-                    snapshot.forEach((childSnapshot) => {
-                        messages.push({
-                            id: childSnapshot.key,
-                            ...childSnapshot.val()
-                        });
-                    });
-                    
-                    this.displayChat(messages);
-                });
-            }
-
-            displayChat(messages) {
-                const chatWindow = document.getElementById('chat-window');
-                chatWindow.innerHTML = `
-                    <div class="chat-header">
-                        <div class="chat-title">${this.currentChat.gigTitle}</div>
-                    </div>
-                    <div class="chat-messages" id="chat-messages">
-                        ${messages.map(msg => this.createMessageElement(msg)).join('')}
-                    </div>
-                    <div class="chat-input">
-                        <input type="text" id="message-input" placeholder="Nachricht schreiben...">
-                        <button class="send-btn" onclick="messageManager.sendMessage()">
-                            <span class="material-icons">send</span>
-                        </button>
-                    </div>
-                `;
-                
-                // Scroll to bottom
-                const messagesDiv = document.getElementById('chat-messages');
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            }
-
-            createMessageElement(message) {
-                const isOwnMessage = message.senderId === this.user.email;
-                const time = new Date(message.timestamp).toLocaleTimeString();
-                
-                return `
-                    <div class="message ${isOwnMessage ? 'sent' : 'received'}">
-                        ${message.text}
-                        <div class="message-time">${time}</div>
-                    </div>
-                `;
-            }
-
-            async sendMessage() {
-                const input = document.getElementById('message-input');
-                const text = input.value.trim();
-                
-                if (text && this.currentChat) {
-                    const message = {
-                        text: text,
-                        senderId: this.user.email,
-                        timestamp: Date.now()
-                    };
-                    
-                    // Save message to database
-                    await this.database.ref(`messages/${this.currentChat.id}`).push(message);
-                    
-                    // Clear input
-                    input.value = '';
-                }
-            }
+        // Get user data
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'login.html';
         }
 
-        // Initialize message manager
-        const messageManager = new MessageManager();
+        // Get chat context if coming from a gig
+        const chatContext = JSON.parse(localStorage.getItem('currentChat'));
+        
+        function save() {
+            var message = document.getElementById('message').value;
+            
+            database.ref('messages/' + Date.now()).set({
+                sender: user.email,
+                senderName: user.name,
+                message: message,
+                timestamp: Date.now(),
+                gigId: chatContext ? chatContext.gigId : null,
+                expertId: chatContext ? chatContext.expertId : null
+            });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check if user is logged in
-            const userData = JSON.parse(localStorage.getItem('user'));
-            if (!userData) {
-                window.location.href = 'login.html';
-                return;
-            }
+            document.getElementById('message').value = '';
+        }
 
-            // Load chats
-            messageManager.loadChats();
+        // Load and display messages
+        database.ref('messages').on('value', function(snapshot) {
+            var messages = document.getElementById('messages');
+            messages.innerHTML = '';
+            
+            snapshot.forEach(function(childSnapshot) {
+                var data = childSnapshot.val();
+                
+                // Only show relevant messages
+                if (chatContext) {
+                    if (data.gigId !== chatContext.gigId) return;
+                }
+                
+                var messageElement = document.createElement('div');
+                messageElement.className = 'message-box';
+                messageElement.innerHTML = `
+                    <strong>${data.senderName}</strong>
+                    <p>${data.message}</p>
+                    <small>${new Date(data.timestamp).toLocaleString()}</small>
+                `;
+                
+                messages.appendChild(messageElement);
+            });
+            
+            // Scroll to bottom
+            messages.scrollTop = messages.scrollHeight;
+        });
 
-            // Check if coming from a gig contact
-            const chatContext = JSON.parse(localStorage.getItem('currentChat'));
-            if (chatContext) {
-                // Create or open chat
-                messageManager.createOrOpenChat(chatContext);
-                localStorage.removeItem('currentChat');
+        // Enter key to send
+        document.getElementById('message').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                save();
             }
         });
     </script>
