@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
-    <script src="firebase-config.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -20,89 +19,30 @@
             background-color: #f5f5f5;
             max-width: 600px;
             margin: 0 auto;
+            position: relative;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            padding-bottom: 60px;
         }
 
         .header {
             background-color: white;
             padding: 1rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 100;
-        }
-
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 120px); /* Subtract header and nav heights */
-            padding: 1rem;
-            overflow: hidden;
-        }
-
-        #messages {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 0.8rem;
-            margin: 0.5rem 0;
-            border-radius: 10px;
-            word-wrap: break-word;
-        }
-
-        .sent {
-            background: #4285f4;
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 4px;
-        }
-
-        .received {
-            background: white;
-            margin-right: auto;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .input-container {
-            display: flex;
-            gap: 0.5rem;
-            padding: 1rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             position: sticky;
-            bottom: 0;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        #message {
-            flex: 1;
-            padding: 0.8rem;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            font-size: 1rem;
-        }
-
-        .send-btn {
-            background: #4285f4;
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 500;
         }
 
         .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: white;
             display: flex;
             justify-content: space-around;
@@ -127,6 +67,162 @@
             font-size: 1.5rem;
             margin-bottom: 0.2rem;
         }
+
+        .chat-container {
+            padding: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .message-box {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .message-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .send-btn {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .chats-list {
+            padding: 1rem;
+        }
+
+        .chat-preview {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .chat-preview:hover {
+            background: #f8f8f8;
+        }
+
+        .chat-preview-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .chat-preview-title {
+            font-weight: 500;
+        }
+
+        .chat-preview-time {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            padding-bottom: 70px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 0.8rem;
+            border-radius: 15px;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .message.sent {
+            background: #4285f4;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.received {
+            background: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.3rem;
+        }
+
+        .chat-view {
+            position: fixed;
+            top: 56px;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            background: #f5f5f5;
+        }
+
+        .message-input-container {
+            position: fixed;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+            background: white;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 1rem;
+            background: #f5f5f5;
+        }
+
+        .send-btn {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            background: #4285f4;
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .send-btn .material-icons {
+            font-size: 1.2rem;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -134,11 +230,17 @@
         <div class="header-title">Nachrichten</div>
     </div>
 
-    <div class="chat-container">
-        <div id="messages"></div>
-        <div class="input-container">
-            <input type="text" id="message" placeholder="Nachricht eingeben...">
-            <button onclick="save()" class="send-btn">
+    <div id="chats-list" class="chats-list">
+        <!-- Chat previews will be loaded here -->
+    </div>
+
+    <div id="chat-view" style="display: none;" class="chat-view">
+        <div class="chat-messages" id="messages">
+            <!-- Messages will be loaded here -->
+        </div>
+        <div class="message-input-container">
+            <input type="text" id="message" class="message-input" placeholder="Nachricht eingeben...">
+            <button onclick="sendMessage()" class="send-btn">
                 <span class="material-icons">send</span>
             </button>
         </div>
@@ -163,59 +265,171 @@
         </a>
     </nav>
 
+    <script src="firebase-config.js"></script>
     <script>
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user) {
             window.location.href = 'login.html';
         }
 
-        // Get chat context if coming from a gig
-        const chatContext = JSON.parse(localStorage.getItem('currentChat'));
-        const chatId = chatContext ? chatContext.chatId : 'global';
+        let currentChatId = null;
 
-        function save() {
-            var message = document.getElementById('message').value;
-            if (!message.trim()) return;
-
-            database.ref('messages/' + chatId).push({
-                sender: user.email,
-                senderName: user.name,
-                message: message,
-                timestamp: Date.now()
+        // Load user's chats
+        function loadChats() {
+            const chatsRef = database.ref('chats');
+            chatsRef.on('value', snapshot => {
+                const chatsList = document.getElementById('chats-list');
+                chatsList.innerHTML = '';
+                
+                snapshot.forEach(childSnapshot => {
+                    const chatId = childSnapshot.key;
+                    const chat = childSnapshot.val();
+                    
+                    // Only show chats where the current user is a participant
+                    if (chatId.includes(user.email.replace(/\./g, '_'))) {
+                        // Get the other participant's info
+                        const otherParticipant = chat.participants.find(p => p.email !== user.email);
+                            
+                        const chatPreview = `
+                            <div class="chat-preview" onclick="openChat('${chatId}')">
+                                <div class="chat-preview-header">
+                                    <div class="chat-preview-title">
+                                        <strong>${otherParticipant.name}</strong>
+                                        ${chat.gigTitle ? `<div class="chat-gig-title">${chat.gigTitle}</div>` : ''}
+                                    </div>
+                                    <div class="chat-preview-time">
+                                        ${chat.lastMessage ? new Date(chat.lastMessage.timestamp).toLocaleString() : ''}
+                                    </div>
+                                </div>
+                                <div class="chat-preview-message">
+                                    ${chat.lastMessage?.text || 'Keine Nachrichten'}
+                                </div>
+                            </div>
+                        `;
+                        chatsList.innerHTML += chatPreview;
+                    }
+                });
             });
-
-            document.getElementById('message').value = '';
-            scrollToBottom();
         }
 
-        // Load and display messages
-        database.ref('messages/' + chatId).on('value', function(snapshot) {
-            var messages = document.getElementById('messages');
-            messages.innerHTML = '';
+        // Open a specific chat
+        function openChat(chatId) {
+            currentChatId = chatId;
+            document.getElementById('chats-list').style.display = 'none';
+            document.getElementById('chat-view').style.display = 'flex';
             
-            snapshot.forEach(function(childSnapshot) {
-                var data = childSnapshot.val();
-                var messageElement = document.createElement('div');
-                messageElement.className = 'message ' + (data.sender === user.email ? 'sent' : 'received');
-                messageElement.textContent = data.message;
-                messages.appendChild(messageElement);
+            const messagesRef = database.ref(`messages/${chatId}`);
+            messagesRef.on('value', snapshot => {
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML = '';
+                
+                snapshot.forEach(childSnapshot => {
+                    const message = childSnapshot.val();
+                    const isOwnMessage = message.sender === user.email;
+                    
+                    const messageElement = `
+                        <div class="message ${isOwnMessage ? 'sent' : 'received'}">
+                            <div class="message-text">${message.text}</div>
+                            <div class="message-time">${new Date(message.timestamp).toLocaleString()}</div>
+                        </div>
+                    `;
+                    messagesDiv.innerHTML += messageElement;
+                });
+                
+                scrollToBottom();
             });
-            
-            scrollToBottom();
-        });
 
-        function scrollToBottom() {
-            var messages = document.getElementById('messages');
-            messages.scrollTop = messages.scrollHeight;
+            setTimeout(() => {
+                document.getElementById('message').focus();
+            }, 300);
         }
 
-        // Enter key to send
-        document.getElementById('message').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                save();
+        // Send a message
+        function sendMessage() {
+            const messageInput = document.getElementById('message');
+            const text = messageInput.value.trim();
+            
+            if (text && currentChatId) {
+                const message = {
+                    sender: user.email,
+                    senderName: user.name,
+                    text: text,
+                    timestamp: Date.now()
+                };
+                
+                // Add message to messages
+                database.ref(`messages/${currentChatId}`).push(message)
+                    .then(() => {
+                        // Update chat's last message
+                        return database.ref(`chats/${currentChatId}`).update({
+                            lastMessage: message
+                        });
+                    })
+                    .then(() => {
+                        messageInput.value = '';
+                        // Scroll to bottom after sending message
+                        scrollToBottom();
+                    });
             }
+        }
+
+        // Add this new function for scrolling
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById('messages');
+            setTimeout(() => {
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }, 100);
+        }
+
+        // Add these event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const messageInput = document.getElementById('message');
+            
+            // Handle Enter key
+            messageInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent default to avoid newline
+                    sendMessage();
+                }
+            });
+
+            // Focus input when chat opens
+            messageInput.focus();
         });
+
+        // Check for chat context (coming from a gig)
+        const chatContext = JSON.parse(localStorage.getItem('currentChat'));
+        if (chatContext) {
+            // Create or open chat
+            currentChatId = chatContext.chatId;
+            
+            // Get expert's name from the gig
+            database.ref(`gigs/${chatContext.gigId}`).once('value', snapshot => {
+                const gig = snapshot.val();
+                const expertName = gig.userName;  // Get the actual name from the gig
+                
+                database.ref(`chats/${currentChatId}`).update({
+                    gigId: chatContext.gigId,
+                    gigTitle: chatContext.gigTitle,
+                    participants: [
+                        {
+                            email: user.email,
+                            name: user.name
+                        },
+                        {
+                            email: chatContext.expertId,
+                            name: expertName
+                        }
+                    ]
+                });
+                openChat(currentChatId);
+            });
+            localStorage.removeItem('currentChat');
+        } else {
+            // Load chat list
+            loadChats();
+        }
     </script>
 </body>
+</html> 
 </html> 
