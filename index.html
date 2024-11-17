@@ -308,6 +308,56 @@
             font-size: 0.9rem;
             text-align: center;
         }
+
+        /* Updated Category Grid Styles */
+        .categories-grid {
+            padding: 1rem;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .category-card {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .category-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .category-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .category-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            padding: 1rem;
+            color: white;
+        }
+
+        .category-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+
+        .category-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -318,40 +368,54 @@
         </div>
     </div>
 
-    <!-- Add Category Filters -->
-    <div class="category-filters" id="category-filters">
-        <div class="category-filter active" data-category="all" onclick="filterGigs('all')">
-            <img src="https://via.placeholder.com/60" alt="Alle">
-            <span class="category-name">Alle</span>
+    <div class="categories-grid">
+        <div class="category-card" onclick="window.location.href='category.html?type=cleaning'">
+            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952" alt="Reinigung" class="category-image">
+            <div class="category-overlay">
+                <div class="category-title">Reinigung</div>
+                <div class="category-description">Haushaltsreinigung & mehr</div>
+            </div>
         </div>
-        <div class="category-filter" data-category="cleaning" onclick="filterGigs('cleaning')">
-            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952" alt="Reinigung">
-            <span class="category-name">Reinigung</span>
-        </div>
-        <div class="category-filter" data-category="tutoring" onclick="filterGigs('tutoring')">
-            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173" alt="Nachhilfe">
-            <span class="category-name">Nachhilfe</span>
-        </div>
-        <div class="category-filter" data-category="handyman" onclick="filterGigs('handyman')">
-            <img src="https://images.unsplash.com/photo-1581244277943-fe4a9c777189" alt="Handwerker">
-            <span class="category-name">Handwerker</span>
-        </div>
-        <div class="category-filter" data-category="design" onclick="filterGigs('design')">
-            <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5" alt="Design">
-            <span class="category-name">Design</span>
-        </div>
-        <div class="category-filter" data-category="fitness" onclick="filterGigs('fitness')">
-            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438" alt="Fitness">
-            <span class="category-name">Fitness</span>
-        </div>
-        <div class="category-filter" data-category="programming" onclick="filterGigs('programming')">
-            <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6" alt="Programmierung">
-            <span class="category-name">Programmierung</span>
-        </div>
-    </div>
 
-    <div class="gigs-container" id="gigs-container">
-        <!-- Gigs will be loaded here -->
+        <div class="category-card" onclick="window.location.href='category.html?type=tutoring'">
+            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173" alt="Nachhilfe" class="category-image">
+            <div class="category-overlay">
+                <div class="category-title">Nachhilfe</div>
+                <div class="category-description">Lernen & Unterricht</div>
+            </div>
+        </div>
+
+        <div class="category-card" onclick="window.location.href='category.html?type=handyman'">
+            <img src="https://images.unsplash.com/photo-1581244277943-fe4a9c777189" alt="Handwerker" class="category-image">
+            <div class="category-overlay">
+                <div class="category-title">Handwerker</div>
+                <div class="category-description">Reparaturen & Montage</div>
+            </div>
+        </div>
+
+        <div class="category-card" onclick="window.location.href='category.html?type=design'">
+            <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5" alt="Design" class="category-image">
+            <div class="category-overlay">
+                <div class="category-title">Design</div>
+                <div class="category-description">Grafik & Webdesign</div>
+            </div>
+        </div>
+
+        <div class="category-card" onclick="window.location.href='category.html?type=fitness'">
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438" alt="Fitness" class="category-image">
+            <div class="category-overlay">
+                <div class="category-title">Fitness</div>
+                <div class="category-description">Training & Gesundheit</div>
+            </div>
+        </div>
+
+        <div class="category-card" onclick="window.location.href='category.html?type=programming'">
+            <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6" alt="Programmierung" class="category-image">
+            <div class="category-overlay">
+                <div class="category-title">Programmierung</div>
+                <div class="category-description">Entwicklung & IT</div>
+            </div>
+        </div>
     </div>
 
     <nav class="bottom-nav">
