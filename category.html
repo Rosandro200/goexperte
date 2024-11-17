@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expert - Kategorie</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="gigs.js"></script>
+    <style>
+        /* ... existing styles from index.html ... */
+
+        .category-header {
+            background-size: cover;
+            background-position: center;
+            height: 200px;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .category-header-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            display: flex;
+            align-items: flex-end;
+            padding: 2rem;
+            color: white;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .category-title {
+            font-size: 2rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .gigs-container {
+            padding: 1rem;
+        }
+
+        .no-gigs {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="category-header" id="category-header">
+        <button class="back-button" onclick="history.back()">
+            <span class="material-icons">arrow_back</span>
+        </button>
+        <div class="category-header-overlay">
+            <div>
+                <h1 class="category-title" id="category-title">Kategorie</h1>
+                <p class="category-description" id="category-description"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="gigs-container" id="gigs-container">
+        <!-- Gigs will be loaded here -->
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <span class="material-icons">home</span>
+            Home
+        </a>
+        <a href="publish.html" class="nav-item">
+            <span class="material-icons">add_circle_outline</span>
+            Anbieten
+        </a>
+        <a href="messages.html" class="nav-item">
+            <span class="material-icons">chat</span>
+            Nachrichten
+        </a>
+        <a href="profile.html" class="nav-item">
+            <span class="material-icons">person_outline</span>
+            Profil
+        </a>
+    </nav>
+
+    <script>
+        const categoryData = {
+            cleaning: {
+                title: 'Reinigung',
+                description: 'Haushaltsreinigung & mehr',
+                image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952'
+            },
+            tutoring: {
+                title: 'Nachhilfe',
+                description: 'Lernen & Unterricht',
+                image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173'
+            },
+            handyman: {
+                title: 'Handwerker',
+                description: 'Reparaturen & Montage',
+                image: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189'
+            },
+            design: {
+                title: 'Design',
+                description: 'Grafik & Webdesign',
+                image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5'
+            },
+            fitness: {
+                title: 'Fitness',
+                description: 'Training & Gesundheit',
+                image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438'
+            },
+            programming: {
+                title: 'Programmierung',
+                description: 'Entwicklung & IT',
+                image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6'
+            }
+        };
+
+        function loadCategoryGigs(category) {
+            const gigsContainer = document.getElementById('gigs-container');
+            const gigManager = new GigManager();
+            
+            gigManager.get((gigs) => {
+                const filteredGigs = gigs.filter(gig => gig.category === category);
+                gigsContainer.innerHTML = '';
+                
+                if (filteredGigs.length === 0) {
+                    gigsContainer.innerHTML = '<p class="no-gigs">Keine Dienstleistungen in dieser Kategorie gefunden</p>';
+                    return;
+                }
+                
+                filteredGigs.forEach(gig => {
+                    const gigElement = GigManager.createGigElement(gig);
+                    gigsContainer.innerHTML += gigElement;
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const category = urlParams.get('type');
+            
+            if (!category || !categoryData[category]) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const data = categoryData[category];
+            document.title = `Expert - ${data.title}`;
+            document.getElementById('category-title').textContent = data.title;
+            document.getElementById('category-description').textContent = data.description;
+            document.getElementById('category-header').style.backgroundImage = `url(${data.image})`;
+
+            loadCategoryGigs(category);
+        });
+    </script>
+</body>
+</html> 
