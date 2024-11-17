@@ -220,17 +220,23 @@
                     
                     // Only show chats where the current user is a participant
                     if (chatId.includes(user.email.replace(/\./g, '_'))) {
-                        const otherUserId = chatId.split('_')
-                            .find(id => id !== user.email.replace(/\./g, '_'))
-                            .replace(/_/g, '.');
+                        // Get the other participant's info
+                        const otherParticipant = chat.participants.find(p => p.email !== user.email);
                             
                         const chatPreview = `
                             <div class="chat-preview" onclick="openChat('${chatId}')">
                                 <div class="chat-preview-header">
-                                    <div class="chat-preview-title">${otherUserId}</div>
-                                    <div class="chat-preview-time">${new Date(chat.lastMessage?.timestamp || Date.now()).toLocaleString()}</div>
+                                    <div class="chat-preview-title">
+                                        <strong>${otherParticipant.name}</strong>
+                                        ${chat.gigTitle ? `<div class="chat-gig-title">${chat.gigTitle}</div>` : ''}
+                                    </div>
+                                    <div class="chat-preview-time">
+                                        ${chat.lastMessage ? new Date(chat.lastMessage.timestamp).toLocaleString() : ''}
+                                    </div>
                                 </div>
-                                <div class="chat-preview-message">${chat.lastMessage?.text || 'Keine Nachrichten'}</div>
+                                <div class="chat-preview-message">
+                                    ${chat.lastMessage?.text || 'Keine Nachrichten'}
+                                </div>
                             </div>
                         `;
                         chatsList.innerHTML += chatPreview;
@@ -257,6 +263,7 @@
                     
                     const messageElement = `
                         <div class="message ${isOwnMessage ? 'sent' : 'received'}">
+                            <div class="message-sender">${isOwnMessage ? 'Sie' : message.senderName}</div>
                             <div class="message-text">${message.text}</div>
                             <div class="message-time">${new Date(message.timestamp).toLocaleString()}</div>
                         </div>
@@ -277,6 +284,7 @@
             if (text && currentChatId) {
                 const message = {
                     sender: user.email,
+                    senderName: user.name,
                     text: text,
                     timestamp: Date.now()
                 };
@@ -308,7 +316,16 @@
             database.ref(`chats/${currentChatId}`).update({
                 gigId: chatContext.gigId,
                 gigTitle: chatContext.gigTitle,
-                participants: [user.email, chatContext.expertId]
+                participants: [
+                    {
+                        email: user.email,
+                        name: user.name
+                    },
+                    {
+                        email: chatContext.expertId,
+                        name: chatContext.expertName
+                    }
+                ]
             });
             openChat(currentChatId);
             localStorage.removeItem('currentChat');
