@@ -233,24 +233,28 @@
     <script>
         class UserGigManager {
             constructor() {
-                this.database = window.database;
+                this.database = firebase.database();
                 this.user = JSON.parse(localStorage.getItem('user'));
             }
 
             loadUserGigs() {
                 const gigsRef = this.database.ref('gigs');
-                gigsRef.orderByChild('userId')
-                    .equalTo(this.user.email)
-                    .on('value', (snapshot) => {
-                        const container = document.getElementById('user-gigs-container');
-                        container.innerHTML = '';
+                
+                // Get reference using email as identifier
+                gigsRef.on('value', (snapshot) => {
+                    const container = document.getElementById('user-gigs-container');
+                    container.innerHTML = '';
+                    
+                    snapshot.forEach((childSnapshot) => {
+                        const gig = childSnapshot.val();
+                        const gigId = childSnapshot.key;
                         
-                        snapshot.forEach((childSnapshot) => {
-                            const gig = childSnapshot.val();
-                            const gigId = childSnapshot.key;
+                        // Only show gigs from the current user
+                        if (gig.userId === this.user.email) {
                             container.innerHTML += this.createGigElement(gig, gigId);
-                        });
+                        }
                     });
+                });
             }
 
             createGigElement(gig, gigId) {
@@ -346,12 +350,15 @@
                 return;
             }
 
+            console.log('User Data:', userData); // Debug log
+
             document.getElementById('profile-picture').src = userData.picture || 'default-profile.png';
             document.getElementById('profile-name').textContent = userData.name;
             document.getElementById('profile-email').textContent = userData.email;
 
             // Load user's gigs
             const userGigManager = new UserGigManager();
+            console.log('Loading gigs for user:', userData.email); // Debug log
             userGigManager.loadUserGigs();
         });
 
