@@ -265,62 +265,63 @@
                 return;
             }
 
-            // Display user information
+            // Display user info
             document.getElementById('profile-picture').src = user.picture || 'default-profile.png';
             document.getElementById('profile-name').textContent = user.name;
             document.getElementById('profile-email').textContent = user.email;
 
             // Load user's gigs
-            loadUserGigs(user.email);
-        });
-
-        function loadUserGigs(userEmail) {
             const gigManager = new GigManager();
-            const container = document.getElementById('user-gigs-container');
-            
-            gigManager.getUserGigs(userEmail, (gigs) => {
+            gigManager.getUserGigs(user.email, function(gigs) {
+                const container = document.getElementById('user-gigs-container');
                 container.innerHTML = '';
                 
                 if (gigs.length === 0) {
-                    container.innerHTML = '<p class="no-gigs-message">Sie haben noch keine Dienstleistungen veröffentlicht.</p>';
+                    container.innerHTML = '<p>Keine Dienstleistungen gefunden</p>';
                     return;
                 }
 
                 gigs.forEach(gig => {
-                    const gigElement = GigManager.createEditableGigElement(gig);
-                    container.innerHTML += gigElement;
+                    container.innerHTML += `
+                        <div class="gig-card" data-gig-id="${gig.id}">
+                            <div class="gig-title">${gig.title}</div>
+                            <div class="gig-price">${gig.price} €</div>
+                            <div class="gig-description">${gig.description}</div>
+                            <div class="gig-actions">
+                                <button onclick="editGig('${gig.id}')">Bearbeiten</button>
+                                <button onclick="deleteGig('${gig.id}')">Löschen</button>
+                            </div>
+                        </div>
+                    `;
                 });
             });
-        }
+        });
 
-        async function deleteGig(gigId) {
+        function deleteGig(gigId) {
             if (confirm('Möchten Sie diese Dienstleistung wirklich löschen?')) {
-                try {
-                    const gigManager = new GigManager();
-                    await gigManager.deleteGig(gigId);
-                    alert('Dienstleistung erfolgreich gelöscht');
-                } catch (error) {
-                    alert('Fehler beim Löschen der Dienstleistung: ' + error.message);
-                }
+                const gigManager = new GigManager();
+                gigManager.remove(gigId);
             }
         }
 
         function editGig(gigId) {
+            // Get current gig data
             const gigCard = document.querySelector(`[data-gig-id="${gigId}"]`);
-            const gig = {
-                title: gigCard.querySelector('.gig-title').textContent,
-                category: gigCard.querySelector('.gig-category').textContent,
-                price: parseFloat(gigCard.querySelector('.gig-price').textContent),
-                description: gigCard.querySelector('.gig-description').textContent
+            const title = gigCard.querySelector('.gig-title').textContent;
+            const price = gigCard.querySelector('.gig-price').textContent;
+            const description = gigCard.querySelector('.gig-description').textContent;
+
+            // Show edit form with current values
+            const updates = {
+                title: prompt('Neuer Titel:', title),
+                price: parseFloat(prompt('Neuer Preis:', price)),
+                description: prompt('Neue Beschreibung:', description)
             };
 
-            document.getElementById('edit-gig-id').value = gigId;
-            document.getElementById('edit-title').value = gig.title;
-            document.getElementById('edit-category').value = gig.category;
-            document.getElementById('edit-price').value = gig.price;
-            document.getElementById('edit-description').value = gig.description;
-
-            document.getElementById('edit-form').classList.add('active');
+            if (updates.title && updates.price && updates.description) {
+                const gigManager = new GigManager();
+                gigManager.update(gigId, updates);
+            }
         }
 
         function cancelEdit() {
