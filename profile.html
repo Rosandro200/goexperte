@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expert - Profil</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.3.1/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -117,13 +120,75 @@
         .logout-btn:hover {
             background-color: #d32f2f;
         }
+
+        .my-gigs {
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .my-gigs h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .gig-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .gig-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .edit-btn {
+            background-color: #4285f4;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .edit-form {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .edit-form.active {
+            display: block;
+        }
+
+        .edit-form input, .edit-form select, .edit-form textarea {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .save-btn {
+            background-color: #4caf50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
     </style>
-    <script src="auth-check.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-        });
-    </script>
 </head>
 <body>
     <div class="header">
@@ -132,13 +197,18 @@
 
     <div class="profile-content">
         <div class="profile-header">
-            <img id="profile-picture" class="profile-picture" src="" alt="Profile Picture">
+            <img id="profile-picture" class="profile-picture" src="" alt="Profilbild">
             <div class="profile-info">
                 <div id="profile-name" class="profile-name"></div>
                 <div id="profile-email" class="profile-email"></div>
             </div>
         </div>
         <button onclick="logout()" class="logout-btn">Abmelden</button>
+    </div>
+
+    <div class="my-gigs">
+        <h3>Meine Dienstleistungen</h3>
+        <div id="user-gigs-container"></div>
     </div>
 
     <nav class="bottom-nav">
@@ -161,18 +231,128 @@
     </nav>
 
     <script>
+        class UserGigManager {
+            constructor() {
+                this.database = window.database;
+                this.user = JSON.parse(localStorage.getItem('user'));
+            }
+
+            loadUserGigs() {
+                const gigsRef = this.database.ref('gigs');
+                gigsRef.orderByChild('userId')
+                    .equalTo(this.user.email)
+                    .on('value', (snapshot) => {
+                        const container = document.getElementById('user-gigs-container');
+                        container.innerHTML = '';
+                        
+                        snapshot.forEach((childSnapshot) => {
+                            const gig = childSnapshot.val();
+                            const gigId = childSnapshot.key;
+                            container.innerHTML += this.createGigElement(gig, gigId);
+                        });
+                    });
+            }
+
+            createGigElement(gig, gigId) {
+                return `
+                    <div class="gig-card" id="gig-${gigId}">
+                        <div class="gig-title">${escapeHtml(gig.title)}</div>
+                        <div class="gig-details">
+                            <span class="gig-category">${escapeHtml(gig.category)}</span>
+                            <span>•</span>
+                            <span class="gig-price">${gig.price.toFixed(2)} €</span>
+                        </div>
+                        <div class="gig-description">${escapeHtml(gig.description)}</div>
+                        <div class="gig-actions">
+                            <button class="edit-btn" onclick="editGig('${gigId}')">Bearbeiten</button>
+                            <button class="delete-btn" onclick="deleteGig('${gigId}')">Löschen</button>
+                        </div>
+                        <div class="edit-form" id="edit-form-${gigId}">
+                            <input type="text" id="edit-title-${gigId}" value="${escapeHtml(gig.title)}" placeholder="Titel">
+                            <select id="edit-category-${gigId}">
+                                <option value="cleaning" ${gig.category === 'cleaning' ? 'selected' : ''}>Reinigung</option>
+                                <option value="tutoring" ${gig.category === 'tutoring' ? 'selected' : ''}>Nachhilfe</option>
+                                <option value="handyman" ${gig.category === 'handyman' ? 'selected' : ''}>Handwerker</option>
+                                <option value="design" ${gig.category === 'design' ? 'selected' : ''}>Design</option>
+                                <option value="fitness" ${gig.category === 'fitness' ? 'selected' : ''}>Fitness</option>
+                                <option value="programming" ${gig.category === 'programming' ? 'selected' : ''}>Programmierung</option>
+                            </select>
+                            <input type="number" id="edit-price-${gigId}" value="${gig.price}" placeholder="Preis">
+                            <textarea id="edit-description-${gigId}" placeholder="Beschreibung">${escapeHtml(gig.description)}</textarea>
+                            <button class="save-btn" onclick="saveGig('${gigId}')">Speichern</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            updateGig(gigId, updates) {
+                return this.database.ref('gigs/' + gigId).update(updates);
+            }
+
+            deleteGig(gigId) {
+                return this.database.ref('gigs/' + gigId).remove();
+            }
+        }
+
+        function editGig(gigId) {
+            const form = document.getElementById(`edit-form-${gigId}`);
+            form.classList.toggle('active');
+        }
+
+        async function saveGig(gigId) {
+            const userGigManager = new UserGigManager();
+            const updates = {
+                title: document.getElementById(`edit-title-${gigId}`).value,
+                category: document.getElementById(`edit-category-${gigId}`).value,
+                price: parseFloat(document.getElementById(`edit-price-${gigId}`).value),
+                description: document.getElementById(`edit-description-${gigId}`).value
+            };
+
+            try {
+                await userGigManager.updateGig(gigId, updates);
+                alert('Dienstleistung erfolgreich aktualisiert!');
+                document.getElementById(`edit-form-${gigId}`).classList.remove('active');
+            } catch (error) {
+                alert('Fehler beim Aktualisieren: ' + error.message);
+            }
+        }
+
+        async function deleteGig(gigId) {
+            if (confirm('Möchten Sie diese Dienstleistung wirklich löschen?')) {
+                const userGigManager = new UserGigManager();
+                try {
+                    await userGigManager.deleteGig(gigId);
+                    alert('Dienstleistung erfolgreich gelöscht!');
+                } catch (error) {
+                    alert('Fehler beim Löschen: ' + error.message);
+                }
+            }
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
+            // Load user profile
             const userData = JSON.parse(localStorage.getItem('user'));
             if (!userData) {
                 window.location.href = 'login.html';
                 return;
             }
 
-            // Display user information
             document.getElementById('profile-picture').src = userData.picture || 'default-profile.png';
             document.getElementById('profile-name').textContent = userData.name;
             document.getElementById('profile-email').textContent = userData.email;
+
+            // Load user's gigs
+            const userGigManager = new UserGigManager();
+            userGigManager.loadUserGigs();
         });
 
         function logout() {
