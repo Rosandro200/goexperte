@@ -136,11 +136,22 @@ function escapeHtml(unsafe) {
 
 // Add contact function
 function contactExpert(gigId, expertId, gigTitle) {
-    // Store chat context in localStorage
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Create a unique chat ID combining both user IDs
+    const chatId = [user.email, expertId].sort().join('_').replace(/\./g, '_');
+    
+    // Store chat context
     const chatContext = {
+        chatId: chatId,
         gigId: gigId,
         expertId: expertId,
-        gigTitle: gigTitle
+        gigTitle: gigTitle,
+        expertName: expertId // You might want to store the expert's name here too
     };
     localStorage.setItem('currentChat', JSON.stringify(chatContext));
     window.location.href = 'messages.html';
