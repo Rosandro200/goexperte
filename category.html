@@ -10,52 +10,98 @@
     <script src="firebase-config.js"></script>
     <script src="gigs.js"></script>
     <style>
-        /* ... existing styles from index.html ... */
-
-        .category-header {
-            background-size: cover;
-            background-position: center;
-            height: 200px;
-            position: relative;
-            margin-bottom: 1rem;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        .category-header-overlay {
-            position: absolute;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .header {
+            background-color: white;
+            padding: 1rem;
+            position: sticky;
             top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             display: flex;
-            align-items: flex-end;
-            padding: 2rem;
-            color: white;
+            align-items: center;
+            gap: 1rem;
         }
 
         .back-button {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: rgba(255,255,255,0.9);
+            background: none;
             border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 0.5rem;
             cursor: pointer;
+            color: #666;
         }
 
-        .category-title {
-            font-size: 2rem;
+        .header-title {
+            font-size: 1.2rem;
             font-weight: 500;
-            margin-bottom: 0.5rem;
         }
 
         .gigs-container {
             padding: 1rem;
+        }
+
+        .gig-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .gig-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .gig-user-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .gig-user-info {
+            flex: 1;
+        }
+
+        .gig-user-name {
+            font-weight: 500;
+        }
+
+        .gig-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .gig-details {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .gig-price {
+            font-weight: 500;
+            color: #4285f4;
         }
 
         .no-gigs {
@@ -63,19 +109,69 @@
             padding: 2rem;
             color: #666;
         }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .nav-item.active {
+            color: #4285f4;
+        }
+
+        .material-icons {
+            font-size: 1.5rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .category-info {
+            background: white;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .category-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
-    <div class="category-header" id="category-header">
+    <div class="header">
         <button class="back-button" onclick="history.back()">
             <span class="material-icons">arrow_back</span>
         </button>
-        <div class="category-header-overlay">
-            <div>
-                <h1 class="category-title" id="category-title">Kategorie</h1>
-                <p class="category-description" id="category-description"></p>
-            </div>
-        </div>
+        <div class="header-title" id="header-title">Kategorie</div>
+    </div>
+
+    <div class="category-info">
+        <h1 class="category-title" id="category-title">Kategorie</h1>
+        <p class="category-description" id="category-description"></p>
     </div>
 
     <div class="gigs-container" id="gigs-container">
@@ -106,32 +202,26 @@
             cleaning: {
                 title: 'Reinigung',
                 description: 'Haushaltsreinigung & mehr',
-                image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952'
             },
             tutoring: {
                 title: 'Nachhilfe',
                 description: 'Lernen & Unterricht',
-                image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173'
             },
             handyman: {
                 title: 'Handwerker',
                 description: 'Reparaturen & Montage',
-                image: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189'
             },
             design: {
                 title: 'Design',
                 description: 'Grafik & Webdesign',
-                image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5'
             },
             fitness: {
                 title: 'Fitness',
                 description: 'Training & Gesundheit',
-                image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438'
             },
             programming: {
                 title: 'Programmierung',
                 description: 'Entwicklung & IT',
-                image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6'
             }
         };
 
@@ -166,9 +256,9 @@
 
             const data = categoryData[category];
             document.title = `Expert - ${data.title}`;
+            document.getElementById('header-title').textContent = data.title;
             document.getElementById('category-title').textContent = data.title;
             document.getElementById('category-description').textContent = data.description;
-            document.getElementById('category-header').style.backgroundImage = `url(${data.image})`;
 
             loadCategoryGigs(category);
         });
