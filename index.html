@@ -262,13 +262,91 @@
             border-bottom: 1px solid #eee;
             font-size: 0.9rem;
         }
+
+        /* Category Filter Styles */
+        .category-filters {
+            padding: 1rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .category-filter {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            min-width: 100px;
+        }
+
+        .category-filter:hover {
+            transform: translateY(-2px);
+        }
+
+        .category-filter.active {
+            color: #4285f4;
+        }
+
+        .category-filter img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 0.5rem;
+            border: 2px solid #ddd;
+        }
+
+        .category-filter.active img {
+            border-color: #4285f4;
+        }
+
+        .category-name {
+            font-size: 0.9rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="search-container">
             <span class="material-icons search-icon">search</span>
-            <input type="text" class="search-bar" placeholder="Search services...">
+            <input type="text" class="search-bar" placeholder="Dienstleistungen suchen...">
+        </div>
+    </div>
+
+    <!-- Add Category Filters -->
+    <div class="category-filters" id="category-filters">
+        <div class="category-filter active" data-category="all" onclick="filterGigs('all')">
+            <img src="https://via.placeholder.com/60" alt="Alle">
+            <span class="category-name">Alle</span>
+        </div>
+        <div class="category-filter" data-category="cleaning" onclick="filterGigs('cleaning')">
+            <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952" alt="Reinigung">
+            <span class="category-name">Reinigung</span>
+        </div>
+        <div class="category-filter" data-category="tutoring" onclick="filterGigs('tutoring')">
+            <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173" alt="Nachhilfe">
+            <span class="category-name">Nachhilfe</span>
+        </div>
+        <div class="category-filter" data-category="handyman" onclick="filterGigs('handyman')">
+            <img src="https://images.unsplash.com/photo-1581244277943-fe4a9c777189" alt="Handwerker">
+            <span class="category-name">Handwerker</span>
+        </div>
+        <div class="category-filter" data-category="design" onclick="filterGigs('design')">
+            <img src="https://images.unsplash.com/photo-1561070791-2526d30994b5" alt="Design">
+            <span class="category-name">Design</span>
+        </div>
+        <div class="category-filter" data-category="fitness" onclick="filterGigs('fitness')">
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438" alt="Fitness">
+            <span class="category-name">Fitness</span>
+        </div>
+        <div class="category-filter" data-category="programming" onclick="filterGigs('programming')">
+            <img src="https://images.unsplash.com/photo-1461749280684-dccba630e2f6" alt="Programmierung">
+            <span class="category-name">Programmierung</span>
         </div>
     </div>
 
@@ -296,24 +374,72 @@
     </nav>
 
     <script>
+        let currentCategory = 'all';
+        let allGigs = [];
+
+        function filterGigs(category) {
+            // Update active state
+            document.querySelectorAll('.category-filter').forEach(filter => {
+                filter.classList.toggle('active', filter.dataset.category === category);
+            });
+
+            currentCategory = category;
+            const gigsContainer = document.getElementById('gigs-container');
+            
+            if (category === 'all') {
+                // Show all gigs
+                displayGigs(allGigs);
+            } else {
+                // Filter gigs by category
+                const filteredGigs = allGigs.filter(gig => gig.category === category);
+                displayGigs(filteredGigs);
+            }
+        }
+
+        function displayGigs(gigs) {
+            const gigsContainer = document.getElementById('gigs-container');
+            gigsContainer.innerHTML = '';
+            
+            if (gigs.length === 0) {
+                gigsContainer.innerHTML = '<p class="no-gigs">Keine Dienstleistungen in dieser Kategorie gefunden</p>';
+                return;
+            }
+            
+            gigs.forEach(gig => {
+                const gigElement = GigManager.createGigElement(gig);
+                gigsContainer.innerHTML += gigElement;
+            });
+        }
+
         function loadGigs() {
             const gigsContainer = document.getElementById('gigs-container');
             const gigManager = new GigManager();
             
             gigManager.get((gigs) => {
-                gigsContainer.innerHTML = '';
-                
-                if (gigs.length === 0) {
-                    gigsContainer.innerHTML = '<p>No gigs found</p>';
-                    return;
-                }
-                
-                gigs.forEach(gig => {
-                    const gigElement = GigManager.createGigElement(gig);
-                    gigsContainer.innerHTML += gigElement;
-                });
+                allGigs = gigs; // Store all gigs
+                filterGigs(currentCategory); // Apply current filter
             });
         }
+
+        // Search functionality
+        const searchInput = document.querySelector('.search-bar');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            if (!searchTerm) {
+                filterGigs(currentCategory);
+                return;
+            }
+
+            const filteredGigs = allGigs.filter(gig => {
+                const matchesCategory = currentCategory === 'all' || gig.category === currentCategory;
+                const matchesSearch = gig.title.toLowerCase().includes(searchTerm) ||
+                                   gig.description.toLowerCase().includes(searchTerm);
+                return matchesCategory && matchesSearch;
+            });
+
+            displayGigs(filteredGigs);
+        });
 
         document.addEventListener('DOMContentLoaded', loadGigs);
     </script>
